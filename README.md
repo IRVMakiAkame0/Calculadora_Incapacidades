@@ -104,6 +104,133 @@ También puedes ejecutar todas las pruebas del proyecto (útil si en el futuro s
 python -m unittest discover -s test -v
 ```
 
+## Interfaz gráfica con Kivy
+
+El proyecto cuenta con una interfaz gráfica desarrollada utilizando Kivy.
+
+La interfaz permite:
+
+- Ingresar el salario mensual.
+- Ingresar los días de incapacidad.
+- Seleccionar el tipo de incapacidad.
+- Calcular el pago correspondiente.
+- Limpiar los campos del formulario.
+- Mostrar mensajes de error amigables.
+- Consultar un historial de los cálculos realizados durante la sesión.
+
+La interfaz gráfica utiliza la misma lógica de negocio que la versión de consola mediante la función `calcular_pago_incapacidad()`.
+
+De esta manera, la lógica del cálculo no se encuentra duplicada entre las diferentes interfaces.
+
+### Tipos de incapacidad disponibles
+
+- Enfermedad general.
+- Maternidad.
+- Riesgo laboral.
+
+## Requisitos
+
+Se recomienda utilizar Python 3.10 o superior.
+
+Las dependencias del proyecto se encuentran en:
+
+`requirements.txt`
+
+Para instalarlas:
+
+`python -m pip install -r requirements.txt`
+
+## Ejecutar la interfaz gráfica
+
+Desde la raíz del proyecto ejecutar:
+
+`python -m src.view.gui.main`
+
+Esto iniciará la interfaz gráfica desarrollada con Kivy.
+
+## Ejecutar la interfaz de consola
+
+Desde la raíz del proyecto ejecutar:
+
+`python -m src.view.console.main`
+
+La versión de consola continúa disponible y utiliza la misma lógica de negocio que la interfaz gráfica.
+
+## Ejecutar las pruebas unitarias
+
+Desde la raíz del proyecto ejecutar:
+
+`python -m unittest discover -s test -v`
+
+Las pruebas unitarias verifican el funcionamiento de la lógica de cálculo de incapacidades.
+
+La incorporación de la interfaz gráfica no modifica la lógica del modelo, por lo que las pruebas existentes deben continuar funcionando correctamente.
+
+## Arquitectura
+
+El proyecto separa la lógica de negocio de las interfaces de usuario.
+
+La estructura principal es:
+
+Calculadora_Incapacidades/
+
+- src/
+  - model/
+    - incapacidad.py
+  - view/
+    - console/
+      - __init__.py
+      - main.py
+    - gui/
+      - __init__.py
+      - main.py
+- test/
+  - test_incapacidad.py
+- requirements.txt
+- README.md
+
+### Modelo
+
+`src/model/incapacidad.py`
+
+Contiene las reglas de negocio y el cálculo del pago de las incapacidades.
+
+### Vista de consola
+
+`src/view/console/main.py`
+
+Permite utilizar el programa desde la terminal.
+
+### Vista gráfica
+
+`src/view/gui/main.py`
+
+Implementa la interfaz gráfica utilizando Kivy.
+
+Tanto la interfaz de consola como la interfaz gráfica utilizan el mismo modelo.
+
+## Manejo de errores
+
+La aplicación controla errores como:
+
+- Salario inválido.
+- Días de incapacidad inválidos.
+- Tipo de incapacidad inválido.
+- Valores no numéricos.
+
+En la interfaz gráfica estos errores se muestran mediante mensajes amigables para el usuario y no mediante errores técnicos de Python.
+
+## Funcionalidad adicional
+
+Como funcionalidad adicional de la interfaz gráfica se implementó un historial de cálculos durante la sesión.
+
+Cada cálculo exitoso registra:
+
+- Tipo de incapacidad.
+- Días de incapacidad.
+- Salario utilizado.
+- Pago calculado.
+
 Integrantes
 
 Miguel Angel Arango Cardona
