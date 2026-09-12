@@ -31,6 +31,8 @@ jobs:
         run: python -m unittest discover -s test -v
 
       - name: Generar ejecutable
+        env:
+          KIVY_GL_BACKEND: mock
         run: >
           python -m PyInstaller
           --noconfirm
