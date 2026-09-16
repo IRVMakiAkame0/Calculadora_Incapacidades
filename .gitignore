@@ -92,3 +92,6 @@ temp/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Base de datos local
+*.db

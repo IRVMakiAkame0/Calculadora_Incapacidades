@@ -22,6 +22,11 @@ from src.model.incapacidad import (
     calcular_pago_incapacidad,
 )
 
+from src.database.database import (
+    crear_base_datos, 
+    guardar_caso,
+)
+
 
 TIPOS_MOSTRADOS = {
     "Enfermedad general": "enfermedad_general",
@@ -42,7 +47,7 @@ PALETAS = {
         "tarjeta": color("#FFFFFF"),
         "tarjeta_secundaria": color("#EEF4FF"),
         "texto": color("#14213D"),
-        "texto_secundario": color("#64748B"),
+        "texto_secundario": color("#000000"),
         "borde": color("#D7DFEA"),
         "campo": color("#F8FAFC"),
         "azul": color("#2563EB"),
@@ -56,7 +61,7 @@ PALETAS = {
         "tarjeta": color("#172033"),
         "tarjeta_secundaria": color("#1D2940"),
         "texto": color("#F8FAFC"),
-        "texto_secundario": color("#A8B4C8"),
+        "texto_secundario": color("#FFFFFF"),
         "borde": color("#334155"),
         "campo": color("#111827"),
         "azul": color("#3B82F6"),
@@ -524,7 +529,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         self.entrada_salario = CampoTexto(
             hint_text="Ejemplo: 2500000",
             multiline=False,
-            input_filter="float",
+            input_filter="int",
             size_hint_y=None,
             height=dp(50),
         )
@@ -855,18 +860,18 @@ class CalculadoraIncapacidadGUI(BoxLayout):
                 tipo_incapacidad=tipo_incapacidad,
             )
 
-            self.resultado.text = (
-                f"{formatear_cop(pago)} COP\n"
-                f"{tipo_mostrado} · {dias:g} días"
-            )
-
-            self.agregar_al_historial(
+            id_caso = guardar_caso(
+                tipo_incapacidad=tipo_mostrado,
                 salario=salario,
-                dias=dias,
-                tipo=tipo_mostrado,
+                dias=int(dias),
                 pago=pago,
             )
 
+            self.resultado.text = (
+                f"{formatear_cop(pago)} COP\n"
+                f"{tipo_mostrado} | {dias:g} días | Caso #{id_caso}"
+            )
+            
         except (ValueError, IncapacidadError) as error:
             self.mostrar_error(str(error))
 
@@ -989,7 +994,9 @@ class CalculadoraIncapacidadesApp(App):
     title = "Calculadora de Incapacidades"
 
     def build(self) -> CalculadoraIncapacidadGUI:
+        crear_base_datos()
         return CalculadoraIncapacidadGUI()
+    
 
 
 if __name__ == "__main__":
