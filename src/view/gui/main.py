@@ -25,6 +25,7 @@ from src.model.incapacidad import (
 from src.database.database import (
     crear_base_datos, 
     guardar_caso,
+    obtener_casos,
 )
 
 
@@ -338,6 +339,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         self.crear_contenido()
 
         self.aplicar_tema()
+        self.cargar_historial()
 
     def crear_label(
         self,
@@ -894,6 +896,29 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             raise ValueError(
                 f"El valor de {campo} debe ser numérico."
             ) from error
+            
+    def cargar_historial(self) -> None:
+        """Carga en pantalla los casos guardados en la base de datos"""
+        casos = obtener_casos()
+        
+        if not casos:
+            self.texto_historial.text = "Todavia no hay calculos"
+            return
+        
+        registros = []
+        
+        for caso in casos:
+            registro = (
+                f"Caso #{caso['id']} | {caso['tipo_incapacidad']} | "
+                f"{caso['dias']:g} dias\n"
+                f"Salario: {formatear_cop(caso['salario'])} | "
+                f"Pago: {formatear_cop(caso['pago'])}"
+            )
+            
+            registros.append(registro)
+        
+        self.texto_historial.text = "\n\n".join(registros)
+            
 
     def agregar_al_historial(
         self,
