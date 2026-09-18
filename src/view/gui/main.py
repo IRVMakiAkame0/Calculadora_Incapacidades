@@ -1,49 +1,122 @@
-"""Interfaz gráfica profesional de la calculadora de incapacidades."""
+"""Interfaz gráfica de la calculadora de incapacidades."""
 
 import platform
 import subprocess
 
-from kivy.app import App
 from kivy.core.window import Window
 from kivy.graphics import Color, Line, RoundedRectangle
 from kivy.metrics import dp
 from kivy.properties import ListProperty, NumericProperty
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
-from kivy.uix.label import Label
-from kivy.uix.popup import Popup
 from kivy.uix.scrollview import ScrollView
-from kivy.uix.spinner import Spinner
-from kivy.uix.textinput import TextInput
 from kivy.utils import get_color_from_hex
 
+from kivymd.app import MDApp
+from kivymd.uix.button import MDButton, MDButtonText
+from kivymd.uix.dialog import (
+    MDDialog,
+    MDDialogButtonContainer,
+    MDDialogHeadlineText,
+    MDDialogSupportingText,
+)
+from kivymd.uix.label import MDLabel
+from kivymd.uix.menu import MDDropdownMenu
+from kivymd.uix.textfield import MDTextField, MDTextFieldHintText
+
+from src.database.database import (
+    crear_base_datos,
+    guardar_caso,
+    obtener_casos,
+)
 from src.model.incapacidad import (
     IncapacidadError,
     calcular_pago_incapacidad,
 )
 
-from src.database.database import (
-    crear_base_datos, 
-    guardar_caso,
-    obtener_casos,
-)
 
+# ============================================================
+# CONSTANTES DEL NEGOCIO
+# ============================================================
+
+TIPO_ENFERMEDAD_GENERAL = "Enfermedad general"
+TIPO_MATERNIDAD = "Maternidad"
+TIPO_RIESGO_LABORAL = "Riesgo laboral"
 
 TIPOS_MOSTRADOS = {
-    "Enfermedad general": "enfermedad_general",
-    "Maternidad": "maternidad",
-    "Riesgo laboral": "riesgo_laboral",
+    TIPO_ENFERMEDAD_GENERAL: "enfermedad_general",
+    TIPO_MATERNIDAD: "maternidad",
+    TIPO_RIESGO_LABORAL: "riesgo_laboral",
 }
 
+# ============================================================
+# CONSTANTES DE TEMA
+# ============================================================
+
+TEMA_AUTOMATICO = "automatico"
+TEMA_CLARO = "claro"
+TEMA_OSCURO = "oscuro"
+
+TEXTO_TEMA_AUTOMATICO = "Tema: Automático"
+TEXTO_TEMA_CLARO = "Tema: Claro"
+TEXTO_TEMA_OSCURO = "Tema: Oscuro"
+
+# ============================================================
+# CONSTANTES DE INTERFAZ
+# ============================================================
+
+TITULO_APLICACION = "Calculadora de Incapacidades"
+SUBTITULO_APLICACION = (
+    "Simulación clara y rápida del pago por incapacidad"
+)
+
+TEXTO_RESULTADO_INICIAL = (
+    "Completa los datos para realizar la simulación."
+)
+
+TEXTO_HISTORIAL_VACIO = "Todavía no hay cálculos."
+
+TEXTO_BOTON_CALCULAR = "Calcular pago"
+TEXTO_BOTON_LIMPIAR = "Limpiar"
+TEXTO_BOTON_ENTENDIDO = "Entendido"
+
+TEXTO_TITULO_ERROR = "Revisa los datos"
+
+VALOR_TIPO_INICIAL = TIPO_ENFERMEDAD_GENERAL
+
+# ============================================================
+# CONSTANTES DE DIMENSIONES
+# ============================================================
+
+ESPACIADO_PRINCIPAL = dp(12)
+ESPACIADO_TARJETA = dp(10)
+ESPACIADO_CONTENIDO = dp(16)
+ESPACIADO_ENCABEZADO = dp(15)
+
+PADDING_PRINCIPAL = dp(20)
+PADDING_TARJETA = dp(20)
+PADDING_RESULTADO = dp(18)
+
+ALTURA_ENCABEZADO = dp(78)
+ALTURA_TARJETA_FORMULARIO = dp(390)
+ALTURA_TARJETA_RESULTADO = dp(120)
+ALTURA_TARJETA_HISTORIAL = dp(210)
+ALTURA_TARJETA_INFORMACION = dp(195)
+
+ALTURA_CAMPO = dp(50)
+ALTURA_BOTON = dp(48)
+
+
+# ============================================================
+# COLORES
+# ============================================================
 
 def color(hexadecimal: str) -> list[float]:
     """Convierte un color hexadecimal a RGBA."""
-
     return get_color_from_hex(hexadecimal)
 
 
 PALETAS = {
-    "claro": {
+    TEMA_CLARO: {
         "fondo": color("#E0F2FE"),
         "tarjeta": color("#FFFFFF"),
         "tarjeta_secundaria": color("#E0F2FE"),
@@ -57,7 +130,7 @@ PALETAS = {
         "blanco": color("#FFFFFF"),
         "error": color("#EF766E"),
     },
-    "oscuro": {
+    TEMA_OSCURO: {
         "fondo": color("#0F172A"),
         "tarjeta": color("#172033"),
         "tarjeta_secundaria": color("#1E3A8A"),
@@ -74,92 +147,132 @@ PALETAS = {
 }
 
 
+# ============================================================
+# FUNCIONES AUXILIARES
+# ============================================================
+
 def detectar_tema_sistema() -> str:
-    """Intenta detectar si el sistema utiliza tema claro u oscuro."""
+    """Detecta si el sistema utiliza tema claro u oscuro."""
+    sistema_operativo = platform.system()
 
-    sistema = platform.system()
+    if sistema_operativo == "Windows":
+        return _detectar_tema_windows()
 
-    if sistema == "Windows":
-        try:
-            import winreg
+    if sistema_operativo == "Darwin":
+        return _detectar_tema_macos()
 
-            ruta = (
-                r"Software\Microsoft\Windows\CurrentVersion"
-                r"\Themes\Personalize"
+    if sistema_operativo == "Linux":
+        return _detectar_tema_linux()
+
+    return TEMA_CLARO
+
+
+def _detectar_tema_windows() -> str:
+    """Detecta el tema configurado en Windows."""
+    try:
+        import winreg
+
+        ruta_configuracion = (
+            r"Software\Microsoft\Windows\CurrentVersion"
+            r"\Themes\Personalize"
+        )
+
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            ruta_configuracion,
+        ) as clave:
+
+            valor_tema, _ = winreg.QueryValueEx(
+                clave,
+                "AppsUseLightTheme",
             )
 
-            with winreg.OpenKey(
-                winreg.HKEY_CURRENT_USER,
-                ruta,
-            ) as clave:
-                valor, _ = winreg.QueryValueEx(
-                    clave,
-                    "AppsUseLightTheme",
-                )
+        return (
+            TEMA_CLARO
+            if valor_tema == 1
+            else TEMA_OSCURO
+        )
 
-            return "claro" if valor == 1 else "oscuro"
+    except (OSError, ImportError):
+        return TEMA_CLARO
 
-        except (OSError, ImportError):
-            return "claro"
 
-    if sistema == "Darwin":
-        try:
-            resultado = subprocess.run(
-                [
-                    "defaults",
-                    "read",
-                    "-g",
-                    "AppleInterfaceStyle",
-                ],
-                capture_output=True,
-                text=True,
-                check=False,
-            )
+def _detectar_tema_macos() -> str:
+    """Detecta el tema configurado en macOS."""
+    try:
+        resultado = subprocess.run(
+            [
+                "defaults",
+                "read",
+                "-g",
+                "AppleInterfaceStyle",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
 
-            if "Dark" in resultado.stdout:
-                return "oscuro"
+        if "Dark" in resultado.stdout:
+            return TEMA_OSCURO
 
-        except OSError:
-            pass
+    except OSError:
+        pass
 
-        return "claro"
+    return TEMA_CLARO
 
-    if sistema == "Linux":
-        try:
-            resultado = subprocess.run(
-                [
-                    "gsettings",
-                    "get",
-                    "org.gnome.desktop.interface",
-                    "color-scheme",
-                ],
-                capture_output=True,
-                text=True,
-                check=False,
-            )
 
-            if "dark" in resultado.stdout.lower():
-                return "oscuro"
+def _detectar_tema_linux() -> str:
+    """Detecta el tema configurado en Linux."""
+    try:
+        resultado = subprocess.run(
+            [
+                "gsettings",
+                "get",
+                "org.gnome.desktop.interface",
+                "color-scheme",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
 
-        except OSError:
-            pass
+        if "dark" in resultado.stdout.lower():
+            return TEMA_OSCURO
 
-    return "claro"
+    except OSError:
+        pass
+
+    return TEMA_CLARO
 
 
 def formatear_cop(valor: float) -> str:
-    """Formatea un número utilizando formato monetario colombiano."""
+    """Formatea un número como moneda colombiana."""
+    formato_moneda = f"{valor:,.2f}"
 
-    formato = f"{valor:,.2f}"
-
-    formato = (
-        formato.replace(",", "X")
+    formato_moneda = (
+        formato_moneda
+        .replace(",", "X")
         .replace(".", ",")
         .replace("X", ".")
     )
 
-    return f"$ {formato}"
+    return f"$ {formato_moneda}"
 
+
+def configurar_texto_ajustable(etiqueta: MDLabel) -> None:
+    """Configura una etiqueta para adaptar el texto a su tamaño."""
+    etiqueta.bind(
+        size=lambda instancia, tamano: setattr(
+            instancia,
+            "text_size",
+            tamano,
+        )
+    )
+
+
+# ============================================================
+# COMPONENTES PERSONALIZADOS
+# ============================================================
 
 class Tarjeta(BoxLayout):
     """Contenedor con fondo y bordes redondeados."""
@@ -201,6 +314,7 @@ class Tarjeta(BoxLayout):
         )
 
     def _actualizar_forma(self, *_args) -> None:
+        """Actualiza la posición y tamaño de la tarjeta."""
         self._fondo.pos = self.pos
         self._fondo.size = self.size
 
@@ -213,108 +327,48 @@ class Tarjeta(BoxLayout):
         )
 
     def _actualizar_colores(self, *_args) -> None:
+        """Actualiza los colores de la tarjeta."""
         self._color_fondo.rgba = self.color_fondo
         self._color_borde.rgba = self.color_borde
 
 
-class CampoTexto(TextInput):
-    """Campo de texto con apariencia moderna."""
+class CampoTexto(MDTextField):
+    """Campo de texto personalizado para la aplicación."""
 
-    color_fondo = ListProperty([1, 1, 1, 1])
-    color_borde = ListProperty([0.8, 0.8, 0.8, 1])
-    radio = NumericProperty(dp(12))
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.background_normal = ""
-        self.background_active = ""
-        self.background_color = [0, 0, 0, 0]
-
-        self.padding = [dp(14), dp(13)]
-        self.font_size = "16sp"
-
-        with self.canvas.before:
-            self._color_fondo = Color(*self.color_fondo)
-
-            self._fondo = RoundedRectangle(
-                pos=self.pos,
-                size=self.size,
-                radius=[self.radio],
-            )
-
-            self._color_borde = Color(*self.color_borde)
-
-            self._borde = Line(
-                rounded_rectangle=(
-                    self.x,
-                    self.y,
-                    self.width,
-                    self.height,
-                    self.radio,
-                ),
-                width=1,
-            )
-
-        self.bind(
-            pos=self._actualizar_forma,
-            size=self._actualizar_forma,
-            color_fondo=self._actualizar_colores,
-            color_borde=self._actualizar_colores,
+    def __init__(self, hint_text="", **kwargs):
+        super().__init__(
+            MDTextFieldHintText(text=hint_text),
+            **kwargs,
         )
 
-    def _actualizar_forma(self, *_args) -> None:
-        self._fondo.pos = self.pos
-        self._fondo.size = self.size
+        self.mode = "filled"
 
-        self._borde.rounded_rectangle = (
-            self.x,
-            self.y,
-            self.width,
-            self.height,
-            self.radio,
+
+class BotonRedondeado(MDButton):
+    """Botón personalizado compatible con KivyMD 2.0.0."""
+
+    def __init__(
+        self,
+        text="",
+        style="filled",
+        **kwargs,
+    ):
+        self.texto_boton = MDButtonText(text=text)
+
+        super().__init__(
+            self.texto_boton,
+            style=style,
+            **kwargs,
         )
 
-    def _actualizar_colores(self, *_args) -> None:
-        self._color_fondo.rgba = self.color_fondo
-        self._color_borde.rgba = self.color_borde
+    def actualizar_texto(self, texto: str) -> None:
+        """Actualiza el texto visible del botón."""
+        self.texto_boton.text = texto
 
 
-class BotonRedondeado(Button):
-    """Botón con fondo redondeado."""
-
-    color_fondo = ListProperty([0.15, 0.39, 0.92, 1])
-    radio = NumericProperty(dp(12))
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.background_normal = ""
-        self.background_down = ""
-        self.background_color = [0, 0, 0, 0]
-
-        with self.canvas.before:
-            self._color_fondo = Color(*self.color_fondo)
-
-            self._fondo = RoundedRectangle(
-                pos=self.pos,
-                size=self.size,
-                radius=[self.radio],
-            )
-
-        self.bind(
-            pos=self._actualizar_forma,
-            size=self._actualizar_forma,
-            color_fondo=self._actualizar_color,
-        )
-
-    def _actualizar_forma(self, *_args) -> None:
-        self._fondo.pos = self.pos
-        self._fondo.size = self.size
-
-    def _actualizar_color(self, *_args) -> None:
-        self._color_fondo.rgba = self.color_fondo
-
+# ============================================================
+# INTERFAZ PRINCIPAL
+# ============================================================
 
 class CalculadoraIncapacidadGUI(BoxLayout):
     """Interfaz principal de la calculadora de incapacidades."""
@@ -323,33 +377,36 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         super().__init__(**kwargs)
 
         self.orientation = "vertical"
-        self.padding = dp(20)
-        self.spacing = dp(12)
-
-        self.historial: list[str] = []
+        self.padding = PADDING_PRINCIPAL
+        self.spacing = ESPACIADO_PRINCIPAL
 
         self.tarjetas: list[Tarjeta] = []
-        self.labels_principales: list[Label] = []
-        self.labels_secundarios: list[Label] = []
+        self.labels_principales: list[MDLabel] = []
+        self.labels_secundarios: list[MDLabel] = []
         self.campos: list[CampoTexto] = []
 
-        self.modo_tema = "automatico"
+        self.modo_tema = TEMA_AUTOMATICO
+        self.menu_tipo = None
+        self.menu_tema = None
+        self.dialogo_error = None
 
         self.crear_encabezado()
         self.crear_contenido()
-
         self.aplicar_tema()
         self.cargar_historial()
+
+    # ========================================================
+    # CREACIÓN DE ELEMENTOS
+    # ========================================================
 
     def crear_label(
         self,
         texto: str,
         secundario: bool = False,
         **kwargs,
-    ) -> Label:
-        """Crea una etiqueta registrada para el sistema de temas."""
-
-        etiqueta = Label(
+    ) -> MDLabel:
+        """Crea una etiqueta y la registra para aplicar temas."""
+        etiqueta = MDLabel(
             text=texto,
             **kwargs,
         )
@@ -363,87 +420,65 @@ class CalculadoraIncapacidadGUI(BoxLayout):
 
     def crear_encabezado(self) -> None:
         """Crea el encabezado principal."""
-
         encabezado = BoxLayout(
             orientation="horizontal",
-            spacing=dp(15),
+            spacing=ESPACIADO_ENCABEZADO,
             size_hint_y=None,
-            height=dp(78),
+            height=ALTURA_ENCABEZADO,
         )
 
-        textos = BoxLayout(
+        textos_encabezado = BoxLayout(
             orientation="vertical",
-            spacing=0,
         )
 
         titulo = self.crear_label(
-            "Calculadora de Incapacidades",
+            TITULO_APLICACION,
             bold=True,
             font_size="26sp",
             halign="left",
             valign="middle",
         )
 
-        titulo.bind(
-            size=lambda instancia, tamano: setattr(
-                instancia,
-                "text_size",
-                tamano,
-            )
-        )
+        configurar_texto_ajustable(titulo)
 
         subtitulo = self.crear_label(
-            "Simulación clara y rápida del pago por incapacidad",
+            SUBTITULO_APLICACION,
             secundario=True,
             font_size="13sp",
             halign="left",
             valign="middle",
         )
 
-        subtitulo.bind(
-            size=lambda instancia, tamano: setattr(
-                instancia,
-                "text_size",
-                tamano,
-            )
-        )
+        configurar_texto_ajustable(subtitulo)
 
-        textos.add_widget(titulo)
-        textos.add_widget(subtitulo)
+        textos_encabezado.add_widget(titulo)
+        textos_encabezado.add_widget(subtitulo)
 
-        self.selector_tema = Spinner(
-            text="Tema: Automático",
-            values=(
-                "Tema: Automático",
-                "Tema: Claro",
-                "Tema: Oscuro",
-            ),
+        self.boton_tema = BotonRedondeado(
+            text=TEXTO_TEMA_AUTOMATICO,
+            style="outlined",
             size_hint_x=None,
-            width=dp(170),
-            size_hint_y=None,
-            height=dp(44),
-            font_size="14sp",
+            width=dp(180),
         )
 
-        self.selector_tema.bind(
-            text=self.cambiar_tema
+        self.boton_tema.bind(
+            on_release=self.abrir_menu_tema
         )
 
-        encabezado.add_widget(textos)
-        encabezado.add_widget(self.selector_tema)
+        encabezado.add_widget(textos_encabezado)
+        encabezado.add_widget(self.boton_tema)
 
         self.add_widget(encabezado)
 
     def crear_contenido(self) -> None:
         """Crea el contenido desplazable de la aplicación."""
-
         scroll = ScrollView(
             do_scroll_x=False,
         )
 
         contenido = BoxLayout(
             orientation="vertical",
-            spacing=dp(16),
+            spacing=ESPACIADO_CONTENIDO,
             padding=[0, dp(8), 0, dp(20)],
             size_hint_y=None,
         )
@@ -465,13 +500,12 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         contenido: BoxLayout,
     ) -> None:
         """Crea la tarjeta principal del formulario."""
-
         tarjeta = Tarjeta(
             orientation="vertical",
-            spacing=dp(10),
-            padding=dp(20),
+            spacing=ESPACIADO_TARJETA,
+            padding=PADDING_TARJETA,
             size_hint_y=None,
-            height=dp(385),
+            height=ALTURA_TARJETA_FORMULARIO,
         )
 
         self.tarjetas.append(tarjeta)
@@ -508,15 +542,18 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             )
         )
 
-        self.selector_tipo = Spinner(
-            text="Enfermedad general",
-            values=tuple(TIPOS_MOSTRADOS.keys()),
+        self.boton_tipo = BotonRedondeado(
+            text=VALOR_TIPO_INICIAL,
+            style="outlined",
             size_hint_y=None,
-            height=dp(48),
-            font_size="16sp",
+            height=ALTURA_BOTON,
         )
 
-        tarjeta.add_widget(self.selector_tipo)
+        self.boton_tipo.bind(
+            on_release=self.abrir_menu_tipo
+        )
+
+        tarjeta.add_widget(self.boton_tipo)
 
         tarjeta.add_widget(
             self.crear_label(
@@ -533,7 +570,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             multiline=False,
             input_filter="int",
             size_hint_y=None,
-            height=dp(50),
+            height=ALTURA_CAMPO,
         )
 
         self.campos.append(self.entrada_salario)
@@ -552,9 +589,9 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         self.entrada_dias = CampoTexto(
             hint_text="Ejemplo: 5",
             multiline=False,
-            input_filter="float",
+            input_filter="int",
             size_hint_y=None,
-            height=dp(50),
+            height=ALTURA_CAMPO,
         )
 
         self.campos.append(self.entrada_dias)
@@ -568,9 +605,8 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         )
 
         self.boton_calcular = BotonRedondeado(
-            text="Calcular pago",
-            bold=True,
-            font_size="16sp",
+            text=TEXTO_BOTON_CALCULAR,
+            style="filled",
         )
 
         self.boton_calcular.bind(
@@ -578,8 +614,8 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         )
 
         self.boton_limpiar = BotonRedondeado(
-            text="Limpiar",
-            font_size="16sp",
+            text=TEXTO_BOTON_LIMPIAR,
+            style="outlined",
         )
 
         self.boton_limpiar.bind(
@@ -590,7 +626,6 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         botones.add_widget(self.boton_limpiar)
 
         tarjeta.add_widget(botones)
-
         contenido.add_widget(tarjeta)
 
     def crear_tarjeta_resultado(
@@ -598,18 +633,17 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         contenido: BoxLayout,
     ) -> None:
         """Crea la tarjeta donde se muestra el resultado."""
-
         self.tarjeta_resultado = Tarjeta(
             orientation="vertical",
             spacing=dp(5),
-            padding=dp(18),
+            padding=PADDING_RESULTADO,
             size_hint_y=None,
-            height=dp(120),
+            height=ALTURA_TARJETA_RESULTADO,
         )
 
         self.tarjetas.append(self.tarjeta_resultado)
 
-        resultado_titulo = self.crear_label(
+        titulo_resultado = self.crear_label(
             "Resultado estimado",
             secundario=True,
             font_size="13sp",
@@ -619,7 +653,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         )
 
         self.resultado = self.crear_label(
-            "Completa los datos para realizar la simulación.",
+            TEXTO_RESULTADO_INICIAL,
             bold=True,
             font_size="22sp",
             size_hint_y=None,
@@ -628,15 +662,9 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             valign="middle",
         )
 
-        self.resultado.bind(
-            size=lambda instancia, tamano: setattr(
-                instancia,
-                "text_size",
-                tamano,
-            )
-        )
+        configurar_texto_ajustable(self.resultado)
 
-        self.tarjeta_resultado.add_widget(resultado_titulo)
+        self.tarjeta_resultado.add_widget(titulo_resultado)
         self.tarjeta_resultado.add_widget(self.resultado)
 
         contenido.add_widget(self.tarjeta_resultado)
@@ -645,21 +673,20 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         self,
         contenido: BoxLayout,
     ) -> None:
-        """Crea la tarjeta del historial."""
-
+        """Crea la tarjeta donde se muestra el historial."""
         tarjeta = Tarjeta(
             orientation="vertical",
             spacing=dp(8),
-            padding=dp(18),
+            padding=PADDING_RESULTADO,
             size_hint_y=None,
-            height=dp(210),
+            height=ALTURA_TARJETA_HISTORIAL,
         )
 
         self.tarjetas.append(tarjeta)
 
         tarjeta.add_widget(
             self.crear_label(
-                "Historial de la sesión",
+                "Historial de cálculos",
                 bold=True,
                 font_size="18sp",
                 size_hint_y=None,
@@ -670,7 +697,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
 
         tarjeta.add_widget(
             self.crear_label(
-                "Los cálculos exitosos aparecerán aquí.",
+                "Los cálculos guardados aparecerán aquí.",
                 secundario=True,
                 font_size="13sp",
                 size_hint_y=None,
@@ -682,7 +709,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         scroll = ScrollView()
 
         self.texto_historial = self.crear_label(
-            "Todavía no hay cálculos.",
+            TEXTO_HISTORIAL_VACIO,
             secundario=True,
             size_hint_y=None,
             halign="left",
@@ -715,14 +742,13 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         self,
         contenido: BoxLayout,
     ) -> None:
-        """Muestra información sobre los cálculos disponibles."""
-
+        """Crea la tarjeta informativa."""
         tarjeta = Tarjeta(
             orientation="vertical",
             spacing=dp(6),
-            padding=dp(18),
+            padding=PADDING_RESULTADO,
             size_hint_y=None,
-            height=dp(195),
+            height=ALTURA_TARJETA_INFORMACION,
         )
 
         self.tarjetas.append(tarjeta)
@@ -738,28 +764,28 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             )
         )
 
-        textos = [
+        textos_informacion = [
             "• Enfermedad general: reconocimiento del 66,67%.",
             "• Maternidad: reconocimiento del 100%.",
             "• Riesgo laboral: reconocimiento del 100%.",
         ]
 
-        for texto in textos:
-            etiqueta = self.crear_label(
-                texto,
-                secundario=True,
-                font_size="14sp",
-                size_hint_y=None,
-                height=dp(30),
-                halign="left",
+        for texto in textos_informacion:
+            tarjeta.add_widget(
+                self.crear_label(
+                    texto,
+                    secundario=True,
+                    font_size="14sp",
+                    size_hint_y=None,
+                    height=dp(30),
+                    halign="left",
+                )
             )
-
-            tarjeta.add_widget(etiqueta)
 
         tarjeta.add_widget(
             self.crear_label(
-                "Los valores corresponden a las reglas definidas "
-                "en el proyecto.",
+                "Los valores corresponden a las reglas "
+                "definidas en el proyecto.",
                 secundario=True,
                 font_size="12sp",
                 size_hint_y=None,
@@ -770,37 +796,98 @@ class CalculadoraIncapacidadGUI(BoxLayout):
 
         contenido.add_widget(tarjeta)
 
-    def cambiar_tema(
-        self,
-        _spinner: Spinner,
-        texto: str,
-    ) -> None:
-        """Cambia el tema visual elegido por el usuario."""
+    # ========================================================
+    # MENÚS
+    # ========================================================
 
-        if texto == "Tema: Claro":
-            self.modo_tema = "claro"
+    def abrir_menu_tema(self, *_args) -> None:
+        """Abre el menú de selección de tema."""
+        opciones_tema = [
+            TEXTO_TEMA_AUTOMATICO,
+            TEXTO_TEMA_CLARO,
+            TEXTO_TEMA_OSCURO,
+        ]
 
-        elif texto == "Tema: Oscuro":
-            self.modo_tema = "oscuro"
+        elementos_menu = [
+            {
+                "text": opcion,
+                "on_release": lambda opcion=opcion: (
+                    self.cambiar_tema(opcion)
+                ),
+            }
+            for opcion in opciones_tema
+        ]
 
-        else:
-            self.modo_tema = "automatico"
+        self.menu_tema = MDDropdownMenu(
+            caller=self.boton_tema,
+            items=elementos_menu,
+        )
+
+        self.menu_tema.open()
+
+    def abrir_menu_tipo(self, *_args) -> None:
+        """Abre el menú para seleccionar el tipo de incapacidad."""
+        opciones_tipo = tuple(TIPOS_MOSTRADOS.keys())
+
+        elementos_menu = [
+            {
+                "text": opcion,
+                "on_release": lambda opcion=opcion: (
+                    self.seleccionar_tipo(opcion)
+                ),
+            }
+            for opcion in opciones_tipo
+        ]
+
+        self.menu_tipo = MDDropdownMenu(
+            caller=self.boton_tipo,
+            items=elementos_menu,
+        )
+
+        self.menu_tipo.open()
+
+    def seleccionar_tipo(self, tipo: str) -> None:
+        """Selecciona un tipo de incapacidad."""
+        self.boton_tipo.actualizar_texto(tipo)
+
+        if self.menu_tipo:
+            self.menu_tipo.dismiss()
+
+    # ========================================================
+    # TEMA
+    # ========================================================
+
+    def cambiar_tema(self, texto: str) -> None:
+        """Cambia el tema visual seleccionado."""
+        temas_disponibles = {
+            TEXTO_TEMA_CLARO: TEMA_CLARO,
+            TEXTO_TEMA_OSCURO: TEMA_OSCURO,
+            TEXTO_TEMA_AUTOMATICO: TEMA_AUTOMATICO,
+        }
+
+        self.modo_tema = temas_disponibles.get(
+            texto,
+            TEMA_AUTOMATICO,
+        )
+
+        self.boton_tema.actualizar_texto(texto)
+
+        if self.menu_tema:
+            self.menu_tema.dismiss()
 
         self.aplicar_tema()
 
     def obtener_tema_actual(self) -> str:
-        """Retorna el tema que debe mostrarse."""
-
-        if self.modo_tema == "automatico":
+        """Obtiene el tema que debe utilizar la interfaz."""
+        if self.modo_tema == TEMA_AUTOMATICO:
             return detectar_tema_sistema()
 
         return self.modo_tema
 
     def aplicar_tema(self) -> None:
         """Aplica los colores correspondientes al tema actual."""
-
-        tema = self.obtener_tema_actual()
-        paleta = PALETAS[tema]
+        tema_actual = self.obtener_tema_actual()
+        paleta = PALETAS[tema_actual]
 
         Window.clearcolor = paleta["fondo"]
 
@@ -811,79 +898,115 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         self.tarjeta_resultado.color_fondo = paleta["azul_suave"]
 
         for etiqueta in self.labels_principales:
-            etiqueta.color = paleta["texto"]
+            etiqueta.theme_text_color = "Custom"
+            etiqueta.text_color = paleta["texto"]
 
         for etiqueta in self.labels_secundarios:
-            etiqueta.color = paleta["texto_secundario"]
+            etiqueta.theme_text_color = "Custom"
+            etiqueta.text_color = paleta["texto_secundario"]
 
-        self.resultado.color = paleta["azul_secundario"]
+        self.resultado.theme_text_color = "Custom"
+        self.resultado.text_color = paleta["azul_secundario"]
 
         for campo in self.campos:
-            campo.color_fondo = paleta["campo"]
-            campo.color_borde = paleta["borde"]
-            campo.foreground_color = paleta["texto"]
-            campo.hint_text_color = paleta["texto_secundario"]
-            campo.cursor_color = paleta["azul"]
+            campo.text_color = paleta["texto"]
+            campo.line_color_normal = paleta["borde"]
+            campo.line_color_focus = paleta["azul"]
 
-        self.selector_tipo.background_normal = ""
-        self.selector_tipo.background_color = paleta["campo"]
-        self.selector_tipo.color = paleta["texto"]
+        self.boton_calcular.md_bg_color = paleta["azul"]
+        self.boton_limpiar.md_bg_color = (
+            paleta["tarjeta_secundaria"]
+        )
 
-        self.selector_tema.background_normal = ""
-        self.selector_tema.background_color = paleta["tarjeta"]
-        self.selector_tema.color = paleta["texto"]
+    # ========================================================
+    # CÁLCULO
+    # ========================================================
 
-        self.boton_calcular.color_fondo = paleta["azul"]
-        self.boton_calcular.color = paleta["blanco"]
-
-        self.boton_limpiar.color_fondo = paleta["tarjeta_secundaria"]
-        self.boton_limpiar.color = paleta["texto"]
-
-    def calcular(self, _boton: Button) -> None:
-        """Obtiene los datos, calcula y muestra el resultado."""
-
+    def calcular(self, _boton: MDButton) -> None:
+        """Obtiene los datos, calcula y guarda el resultado."""
         try:
-            salario = self.convertir_numero(
-                texto=self.entrada_salario.text,
-                campo="salario",
-            )
+            datos = self.obtener_datos_formulario()
+            pago = self.calcular_pago(datos)
 
-            dias = self.convertir_numero(
-                texto=self.entrada_dias.text,
-                campo="días de incapacidad",
-            )
-
-            tipo_mostrado = self.selector_tipo.text
-            tipo_incapacidad = TIPOS_MOSTRADOS[tipo_mostrado]
-
-            pago = calcular_pago_incapacidad(
-                salario_mensual=salario,
-                dias_incapacidad=dias,
-                tipo_incapacidad=tipo_incapacidad,
-            )
-
-            id_caso = guardar_caso(
-                tipo_incapacidad=tipo_mostrado,
-                salario=salario,
-                dias=int(dias),
+            self.guardar_resultado(
+                datos=datos,
                 pago=pago,
             )
 
-            self.resultado.text = (
-                f"{formatear_cop(pago)} COP\n"
-                f"{tipo_mostrado} | {dias:g} días | Caso #{id_caso}"
-            )
-            
         except (ValueError, IncapacidadError) as error:
             self.mostrar_error(str(error))
+
+    def obtener_datos_formulario(self) -> dict:
+        """Obtiene y valida los datos ingresados en el formulario."""
+        salario = self.convertir_numero(
+            texto=self.entrada_salario.text,
+            campo="salario",
+        )
+
+        dias = self.convertir_dias(
+            self.entrada_dias.text
+        )
+
+        tipo_mostrado = self.boton_tipo.texto_boton.text
+        tipo_incapacidad = TIPOS_MOSTRADOS[tipo_mostrado]
+
+        return {
+            "salario": salario,
+            "dias": dias,
+            "tipo_mostrado": tipo_mostrado,
+            "tipo_incapacidad": tipo_incapacidad,
+        }
+
+    def calcular_pago(self, datos: dict) -> float:
+        """Calcula el pago correspondiente a los datos recibidos."""
+        return calcular_pago_incapacidad(
+            salario_mensual=datos["salario"],
+            dias_incapacidad=datos["dias"],
+            tipo_incapacidad=datos["tipo_incapacidad"],
+        )
+
+    def guardar_resultado(
+        self,
+        datos: dict,
+        pago: float,
+    ) -> None:
+        """Guarda el cálculo y actualiza la interfaz."""
+        id_caso = guardar_caso(
+            tipo_incapacidad=datos["tipo_mostrado"],
+            salario=datos["salario"],
+            dias=datos["dias"],
+            pago=pago,
+        )
+
+        self.mostrar_resultado(
+            tipo_incapacidad=datos["tipo_mostrado"],
+            dias=datos["dias"],
+            pago=pago,
+            id_caso=id_caso,
+        )
+
+        self.cargar_historial()
+
+    def mostrar_resultado(
+        self,
+        tipo_incapacidad: str,
+        dias: int,
+        pago: float,
+        id_caso: int,
+    ) -> None:
+        """Muestra el resultado del cálculo."""
+        self.resultado.text = (
+            f"{formatear_cop(pago)} COP\n"
+            f"{tipo_incapacidad} | {dias} días | "
+            f"Caso #{id_caso}"
+        )
 
     def convertir_numero(
         self,
         texto: str,
         campo: str,
     ) -> float:
-        """Convierte un campo de texto a número."""
-
+        """Convierte un campo de texto a número decimal."""
         if not texto.strip():
             raise ValueError(
                 f"Debes ingresar un valor para {campo}."
@@ -896,132 +1019,114 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             raise ValueError(
                 f"El valor de {campo} debe ser numérico."
             ) from error
-            
+
+    def convertir_dias(self, texto: str) -> int:
+        """Convierte el campo de días a un número entero."""
+        if not texto.strip():
+            raise ValueError(
+                "Debes ingresar un valor para días de incapacidad."
+            )
+
+        try:
+            return int(texto)
+
+        except ValueError as error:
+            raise ValueError(
+                "Los días de incapacidad deben ser un número entero."
+            ) from error
+
+    # ========================================================
+    # HISTORIAL
+    # ========================================================
+
     def cargar_historial(self) -> None:
-        """Carga en pantalla los casos guardados en la base de datos"""
+        """Carga en pantalla los casos guardados."""
         casos = obtener_casos()
-        
+
         if not casos:
-            self.texto_historial.text = "Todavia no hay calculos"
+            self.texto_historial.text = TEXTO_HISTORIAL_VACIO
             return
-        
-        registros = []
-        
-        for caso in casos:
-            registro = (
-                f"Caso #{caso['id']} | {caso['tipo_incapacidad']} | "
-                f"{caso['dias']:g} dias\n"
-                f"Salario: {formatear_cop(caso['salario'])} | "
-                f"Pago: {formatear_cop(caso['pago'])}"
-            )
-            
-            registros.append(registro)
-        
+
+        registros = [
+            self.formatear_caso_historial(caso)
+            for caso in casos
+        ]
+
         self.texto_historial.text = "\n\n".join(registros)
-            
 
-    def agregar_al_historial(
-        self,
-        salario: float,
-        dias: float,
-        tipo: str,
-        pago: float,
-    ) -> None:
-        """Agrega un cálculo exitoso al historial."""
-
-        registro = (
-            f"{tipo} · {dias:g} días\n"
-            f"Salario: {formatear_cop(salario)} · "
-            f"Pago: {formatear_cop(pago)}"
+    def formatear_caso_historial(self, caso: dict) -> str:
+        """Convierte un caso almacenado en texto."""
+        return (
+            f"Caso #{caso['id']} | "
+            f"{caso['tipo_incapacidad']} | "
+            f"{caso['dias']} días\n"
+            f"Salario: {formatear_cop(caso['salario'])} | "
+            f"Pago: {formatear_cop(caso['pago'])}"
         )
 
-        self.historial.append(registro)
+    # ========================================================
+    # FORMULARIO Y ERRORES
+    # ========================================================
 
-        self.texto_historial.text = "\n\n".join(
-            f"{indice}. {elemento}"
-            for indice, elemento in enumerate(
-                self.historial,
-                start=1,
-            )
-        )
-
-    def limpiar(self, _boton: Button) -> None:
+    def limpiar(self, _boton: MDButton) -> None:
         """Limpia los campos del formulario."""
-
         self.entrada_salario.text = ""
         self.entrada_dias.text = ""
-        self.selector_tipo.text = "Enfermedad general"
 
-        self.resultado.text = (
-            "Completa los datos para realizar la simulación."
+        self.boton_tipo.actualizar_texto(
+            VALOR_TIPO_INICIAL
         )
 
+        self.resultado.text = TEXTO_RESULTADO_INICIAL
         self.entrada_salario.focus = True
 
     def mostrar_error(self, mensaje: str) -> None:
-        """Muestra un mensaje de error amigable."""
-
-        paleta = PALETAS[self.obtener_tema_actual()]
-
-        contenido = Tarjeta(
-            orientation="vertical",
-            spacing=dp(15),
-            padding=dp(20),
-            color_fondo=paleta["tarjeta"],
-            color_borde=paleta["borde"],
-        )
-
+        """Muestra un mensaje de error mediante MDDialog."""
         mensaje_error = mensaje.replace("Error: ", "")
 
-        etiqueta = Label(
-            text=mensaje_error,
-            color=paleta["texto"],
-            halign="center",
-            valign="middle",
+        boton_entendido = BotonRedondeado(
+            text=TEXTO_BOTON_ENTENDIDO,
+            style="text",
         )
 
-        etiqueta.bind(
-            size=lambda instancia, tamano: setattr(
-                instancia,
-                "text_size",
-                tamano,
+        self.dialogo_error = MDDialog(
+            MDDialogHeadlineText(
+                text=TEXTO_TITULO_ERROR,
+            ),
+            MDDialogSupportingText(
+                text=mensaje_error,
+            ),
+            MDDialogButtonContainer(
+                boton_entendido,
+            ),
+        )
+
+        boton_entendido.bind(
+            on_release=lambda *_args: (
+                self.dialogo_error.dismiss()
             )
         )
 
-        boton_cerrar = BotonRedondeado(
-            text="Entendido",
-            color_fondo=paleta["azul"],
-            color=paleta["blanco"],
-            size_hint_y=None,
-            height=dp(46),
-        )
-
-        contenido.add_widget(etiqueta)
-        contenido.add_widget(boton_cerrar)
-
-        popup = Popup(
-            title="Revisa los datos",
-            content=contenido,
-            size_hint=(0.85, 0.45),
-            auto_dismiss=False,
-        )
-
-        boton_cerrar.bind(
-            on_release=popup.dismiss
-        )
-
-        popup.open()
+        self.dialogo_error.open()
 
 
-class CalculadoraIncapacidadesApp(App):
+# ============================================================
+# APLICACIÓN
+# ============================================================
+
+class CalculadoraIncapacidadesApp(MDApp):
     """Aplicación gráfica de la calculadora."""
 
-    title = "Calculadora de Incapacidades"
+    title = TITULO_APLICACION
 
     def build(self) -> CalculadoraIncapacidadGUI:
+        """Inicializa la base de datos y construye la interfaz."""
         crear_base_datos()
+
+        self.theme_cls.primary_palette = "Blue"
+        self.theme_cls.theme_style = "Light"
+
         return CalculadoraIncapacidadGUI()
-    
 
 
 if __name__ == "__main__":
