@@ -256,12 +256,61 @@ Los cálculos realizados desde la interfaz gráfica pueden conservarse y posteri
 
 Desde la carpeta principal del proyecto:
 
-```bash
-python -m src.view.gui.main
+`python -m src.view.gui.main`
+
+---
+
+## Interfaz gráfica y aplicación
+
+Como continuación del proyecto base suministrado por el docente, se desarrolló una interfaz gráfica para facilitar el uso de la calculadora de incapacidades.
+
+Esta etapa incorpora:
+
+- Interfaz gráfica desarrollada con Kivy y KivyMD.
+- Integración de la lógica de cálculo existente con la interfaz gráfica.
+- Temas visuales claro, oscuro y automático.
+- Persistencia de los cálculos mediante SQLite.
+- Historial de casos calculados.
+- Validación de los datos ingresados.
+- Ejecución tanto mediante interfaz gráfica como por consola.
+
+### Desarrollo de esta etapa
+
+- Isabella Ruiz
+- Andrés Rosas
+
+Los autores del desarrollo inicial y de la lógica base del proyecto se conservan en los créditos originales de este repositorio.
+
+## Instalación de dependencias
+
+Desde la carpeta principal del proyecto:
+
+`python -m pip install -r requirements.txt`
+
+---
 
 
-Integrantes
+## Integrantes y contribuciones
 
-Miguel Angel Arango Cardona
+### Desarrollo base del proyecto
+El desarrollo inicial de la lógica de la calculadora de incapacidades fue realizado por:
 
-Juan Camilo García Castro
+- Miguel Ángel Arango Cardona
+- Juan Camilo García Castro
+
+### Desarrollo de interfaz gráfica y aplicación
+A partir del proyecto base suministrado por el docente, esta etapa fue desarrollada por:
+
+| Nombre | Github |
+|---|---|
+| Isabella Ruiz Velasquez | [@IRVMakiAkame0](https://github.com/IRVMakiAkame0). |
+| Andrés Rosas | [@andres-rosas](https://github.com/andres-rosas). |
+
+En esta etapa se implementaron y mejoraron funcionalidades como:
+
+- Interfaz gráfica con Kivy y KivyMD.
+- Diseño visual y temas de la aplicación.
+- Persistencia de datos mediante SQLite.
+- Historial de cálculos.
+- Integración de la lógica existente con la interfaz gráfica.
+- Pruebas y ajustes de funcionamiento de la aplicación.
