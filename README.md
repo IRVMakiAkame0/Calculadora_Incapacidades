@@ -231,6 +231,35 @@ Cada cálculo exitoso registra:
 - Salario utilizado.
 - Pago calculado.
 
+## Interfaz gráfica
+
+El proyecto cuenta con una interfaz gráfica desarrollada con Kivy y KivyMD, que permite utilizar la calculadora de incapacidades de una forma visual e intuitiva.
+
+La interfaz permite:
+
+- Ingresar el salario mensual.
+- Ingresar los días de incapacidad.
+- Seleccionar el tipo de incapacidad.
+- Calcular el valor estimado de la incapacidad.
+- Limpiar los datos ingresados.
+- Visualizar los resultados obtenidos.
+- Consultar el historial de cálculos realizados.
+- Utilizar temas claro, oscuro y automático.
+
+## Persistencia de datos
+
+La aplicación utiliza SQLite para almacenar los casos calculados.
+
+Los cálculos realizados desde la interfaz gráfica pueden conservarse y posteriormente visualizarse en el historial de la aplicación.
+
+## Ejecución de la interfaz gráfica
+
+Desde la carpeta principal del proyecto:
+
+```bash
+python -m src.view.gui.main
+
+
 Integrantes
 
 Miguel Angel Arango Cardona
