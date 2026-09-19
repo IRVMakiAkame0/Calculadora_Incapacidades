@@ -38,9 +38,9 @@ from src.model.incapacidad import (
 # CONSTANTES DEL NEGOCIO
 # ============================================================
 
-TIPO_ENFERMEDAD_GENERAL = "Enfermedad general"
+TIPO_ENFERMEDAD_GENERAL = "Enfermedad General"
 TIPO_MATERNIDAD = "Maternidad"
-TIPO_RIESGO_LABORAL = "Riesgo laboral"
+TIPO_RIESGO_LABORAL = "Riesgo Laboral"
 
 TIPOS_MOSTRADOS = {
     TIPO_ENFERMEDAD_GENERAL: "enfermedad_general",
@@ -65,9 +65,6 @@ TEXTO_TEMA_OSCURO = "Tema: Oscuro"
 # ============================================================
 
 TITULO_APLICACION = "Calculadora de Incapacidades"
-SUBTITULO_APLICACION = (
-    "Simulación clara y rápida del pago por incapacidad"
-)
 
 TEXTO_RESULTADO_INICIAL = (
     "Completa los datos para realizar la simulación."
@@ -75,7 +72,7 @@ TEXTO_RESULTADO_INICIAL = (
 
 TEXTO_HISTORIAL_VACIO = "Todavía no hay cálculos."
 
-TEXTO_BOTON_CALCULAR = "Calcular pago"
+TEXTO_BOTON_CALCULAR = "Calcular Pago"
 TEXTO_BOTON_LIMPIAR = "Limpiar"
 TEXTO_BOTON_ENTENDIDO = "Entendido"
 
@@ -87,22 +84,22 @@ VALOR_TIPO_INICIAL = TIPO_ENFERMEDAD_GENERAL
 # CONSTANTES DE DIMENSIONES
 # ============================================================
 
-ESPACIADO_PRINCIPAL = dp(12)
-ESPACIADO_TARJETA = dp(10)
-ESPACIADO_CONTENIDO = dp(16)
+ESPACIADO_PRINCIPAL = dp(14)
+ESPACIADO_TARJETA = dp(12)
+ESPACIADO_CONTENIDO = dp(18)
 ESPACIADO_ENCABEZADO = dp(15)
 
-PADDING_PRINCIPAL = dp(20)
-PADDING_TARJETA = dp(20)
-PADDING_RESULTADO = dp(18)
+PADDING_PRINCIPAL = dp(32)
+PADDING_TARJETA = dp(28)
+PADDING_RESULTADO = dp(26)
 
-ALTURA_ENCABEZADO = dp(78)
-ALTURA_TARJETA_FORMULARIO = dp(390)
-ALTURA_TARJETA_RESULTADO = dp(120)
-ALTURA_TARJETA_HISTORIAL = dp(210)
-ALTURA_TARJETA_INFORMACION = dp(195)
+ALTURA_ENCABEZADO = dp(68)
+ALTURA_TARJETA_FORMULARIO = dp(450)
+ALTURA_TARJETA_RESULTADO = dp(125)
+ALTURA_TARJETA_HISTORIAL = dp(220)
+ALTURA_TARJETA_INFORMACION = dp(230)
 
-ALTURA_CAMPO = dp(50)
+ALTURA_CAMPO = dp(54)
 ALTURA_BOTON = dp(48)
 
 
@@ -342,6 +339,42 @@ class CampoTexto(MDTextField):
         )
 
         self.mode = "filled"
+        
+        self.radius = [
+            dp(12),
+            dp(12),
+            dp(12),
+            dp(12),
+        ]
+        
+class CampoSalario(CampoTexto):
+    """Campo de salario con separadores de miles."""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._formateando = False
+        self.bind(text=self._formatear_salario)
+
+    def _formatear_salario(self, _instancia, texto: str) -> None:
+        """Agrega separadores de miles mientras se escribe."""
+        if self._formateando:
+            return
+
+        numeros = texto.replace(".", "").strip()
+
+        if not numeros:
+            return
+
+        if not numeros.isdigit():
+            return
+
+        texto_formateado = f"{int(numeros):,}".replace(",", ".")
+
+        if texto != texto_formateado:
+            self._formateando = True
+            self.text = texto_formateado
+            self.cursor = (len(self.text), 0)
+            self._formateando = False
 
 
 class BotonRedondeado(MDButton):
@@ -360,10 +393,32 @@ class BotonRedondeado(MDButton):
             style=style,
             **kwargs,
         )
+        
+        if self.size_hint_x is not None:
+            self.bind(
+                parent = self._ajustar_ancho
+            )
 
     def actualizar_texto(self, texto: str) -> None:
         """Actualiza el texto visible del botón."""
         self.texto_boton.text = texto
+        
+    def _ajustar_ancho(self, *_args) -> None:
+        """Permite que el botón utilice el ancho asignado por el layout."""
+        if self.parent and self.size_hint_x is not None:
+            cantidad = len(self.parent.children)
+
+            if cantidad > 0:
+                espacio_total = self.parent.spacing * (cantidad - 1)
+                padding_horizontal = (
+                    self.parent.padding[0] + self.parent.padding[2]
+                )
+
+                self.width = (
+                    self.parent.width
+                    - espacio_total
+                    - padding_horizontal
+                ) / cantidad
 
 
 # ============================================================
@@ -386,9 +441,10 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         self.campos: list[CampoTexto] = []
 
         self.modo_tema = TEMA_AUTOMATICO
-        self.menu_tipo = None
         self.menu_tema = None
         self.dialogo_error = None
+        self.tipo_seleccionado = VALOR_TIPO_INICIAL
+        self.botones_tipo = {}
 
         self.crear_encabezado()
         self.crear_contenido()
@@ -441,18 +497,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
 
         configurar_texto_ajustable(titulo)
 
-        subtitulo = self.crear_label(
-            SUBTITULO_APLICACION,
-            secundario=True,
-            font_size="13sp",
-            halign="left",
-            valign="middle",
-        )
-
-        configurar_texto_ajustable(subtitulo)
-
         textos_encabezado.add_widget(titulo)
-        textos_encabezado.add_widget(subtitulo)
 
         self.boton_tema = BotonRedondeado(
             text=TEXTO_TEMA_AUTOMATICO,
@@ -503,7 +548,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         tarjeta = Tarjeta(
             orientation="vertical",
             spacing=ESPACIADO_TARJETA,
-            padding=PADDING_TARJETA,
+            padding=[dp(28), dp(30), dp(28), dp(24)],
             size_hint_y=None,
             height=ALTURA_TARJETA_FORMULARIO,
         )
@@ -512,52 +557,67 @@ class CalculadoraIncapacidadGUI(BoxLayout):
 
         tarjeta.add_widget(
             self.crear_label(
-                "Simular pago",
+                "Ingresa los Datos de la Incapacidad",
                 bold=True,
-                font_size="20sp",
+                font_size="18sp",
                 size_hint_y=None,
-                height=dp(35),
-                halign="left",
+                height=dp(40),
+                halign="center",
+                valign="middle"
             )
         )
 
-        tarjeta.add_widget(
-            self.crear_label(
-                "Ingresa los datos de la incapacidad.",
-                secundario=True,
-                font_size="13sp",
-                size_hint_y=None,
-                height=dp(25),
-                halign="left",
-            )
-        )
 
         tarjeta.add_widget(
             self.crear_label(
-                "Tipo de incapacidad",
-                font_size="15sp",
+                "Tipo de Incapacidad",
+                bold=True,
+                font_size="18sp",
                 size_hint_y=None,
                 height=dp(28),
                 halign="left",
             )
         )
 
-        self.boton_tipo = BotonRedondeado(
-            text=VALOR_TIPO_INICIAL,
-            style="outlined",
+        contenedor_tipo = BoxLayout(
+            orientation="horizontal",
             size_hint_y=None,
             height=ALTURA_BOTON,
         )
 
-        self.boton_tipo.bind(
-            on_release=self.abrir_menu_tipo
+        contenedor_tipo.add_widget(BoxLayout())
+
+        opciones_tipo = BoxLayout(
+            orientation="horizontal",
+            spacing=dp(20),
+            size_hint_y=None,
+            height=ALTURA_BOTON,
+            padding=[dp(60), 0, dp(60), 0],
         )
 
-        tarjeta.add_widget(self.boton_tipo)
+        for tipo in TIPOS_MOSTRADOS:
+            boton = BotonRedondeado(
+                text=tipo,
+                style="outlined",
+                size_hint=(1, None),
+                height=ALTURA_BOTON,
+            )
+
+            boton.bind(
+                on_release=lambda _boton, tipo=tipo: (
+                    self.seleccionar_tipo(tipo)
+                )
+            )
+
+            self.botones_tipo[tipo] = boton
+            opciones_tipo.add_widget(boton)
+
+        tarjeta.add_widget(opciones_tipo)
 
         tarjeta.add_widget(
             self.crear_label(
-                "Salario mensual (COP)",
+                "Salario Mensual (COP)",
+                bold=True,
                 font_size="15sp",
                 size_hint_y=None,
                 height=dp(28),
@@ -565,10 +625,9 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             )
         )
 
-        self.entrada_salario = CampoTexto(
-            hint_text="Ejemplo: 2500000",
+        self.entrada_salario = CampoSalario(
+            hint_text="Ejemplo: 2.500.000",
             multiline=False,
-            input_filter="int",
             size_hint_y=None,
             height=ALTURA_CAMPO,
         )
@@ -578,7 +637,8 @@ class CalculadoraIncapacidadGUI(BoxLayout):
 
         tarjeta.add_widget(
             self.crear_label(
-                "Días de incapacidad",
+                "Días de Incapacidad",
+                bold=True,
                 font_size="15sp",
                 size_hint_y=None,
                 height=dp(28),
@@ -636,7 +696,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         self.tarjeta_resultado = Tarjeta(
             orientation="vertical",
             spacing=dp(5),
-            padding=PADDING_RESULTADO,
+            padding=[dp(26), dp(28), dp(26), dp(22)],
             size_hint_y=None,
             height=ALTURA_TARJETA_RESULTADO,
         )
@@ -644,11 +704,12 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         self.tarjetas.append(self.tarjeta_resultado)
 
         titulo_resultado = self.crear_label(
-            "Resultado estimado",
+            "Resultado Estimado",
+            bold=True,
             secundario=True,
-            font_size="13sp",
+            font_size="18sp",
             size_hint_y=None,
-            height=dp(25),
+            height=dp(30),
             halign="left",
         )
 
@@ -677,7 +738,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         tarjeta = Tarjeta(
             orientation="vertical",
             spacing=dp(8),
-            padding=PADDING_RESULTADO,
+            padding=[dp(26), dp(28), dp(26), dp(22)],
             size_hint_y=None,
             height=ALTURA_TARJETA_HISTORIAL,
         )
@@ -686,7 +747,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
 
         tarjeta.add_widget(
             self.crear_label(
-                "Historial de cálculos",
+                "Historial de Cálculos",
                 bold=True,
                 font_size="18sp",
                 size_hint_y=None,
@@ -745,8 +806,8 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         """Crea la tarjeta informativa."""
         tarjeta = Tarjeta(
             orientation="vertical",
-            spacing=dp(6),
-            padding=PADDING_RESULTADO,
+            spacing=dp(10),
+            padding=[dp(30), dp(30), dp(30), dp(26)],
             size_hint_y=None,
             height=ALTURA_TARJETA_INFORMACION,
         )
@@ -755,7 +816,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
 
         tarjeta.add_widget(
             self.crear_label(
-                "¿Cómo funciona esta herramienta?",
+                "¿Cómo Funciona Esta Herramienta?",
                 bold=True,
                 font_size="18sp",
                 size_hint_y=None,
@@ -819,39 +880,36 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         ]
 
         self.menu_tema = MDDropdownMenu(
-            caller=self.boton_tema,
-            items=elementos_menu,
+            caller = self.boton_tema,
+            items = elementos_menu,
+            width = dp(170),
+            position = "auto",
         )
 
         self.menu_tema.open()
 
-    def abrir_menu_tipo(self, *_args) -> None:
-        """Abre el menú para seleccionar el tipo de incapacidad."""
-        opciones_tipo = tuple(TIPOS_MOSTRADOS.keys())
-
-        elementos_menu = [
-            {
-                "text": opcion,
-                "on_release": lambda opcion=opcion: (
-                    self.seleccionar_tipo(opcion)
-                ),
-            }
-            for opcion in opciones_tipo
-        ]
-
-        self.menu_tipo = MDDropdownMenu(
-            caller=self.boton_tipo,
-            items=elementos_menu,
-        )
-
-        self.menu_tipo.open()
-
     def seleccionar_tipo(self, tipo: str) -> None:
         """Selecciona un tipo de incapacidad."""
-        self.boton_tipo.actualizar_texto(tipo)
+        self.tipo_seleccionado = tipo
 
-        if self.menu_tipo:
-            self.menu_tipo.dismiss()
+        self.actualizar_botones_tipo()
+        
+    def actualizar_botones_tipo(self) -> None:
+        """Actualiza el estilo visual de los tipos de incapacidad."""
+        tema_actual = self.obtener_tema_actual()
+        paleta = PALETAS[tema_actual]
+
+        for tipo, boton in self.botones_tipo.items():
+            if tipo == self.tipo_seleccionado:
+                boton.style = "filled"
+                boton.md_bg_color = paleta["azul"]
+                boton.texto_boton.theme_text_color = "Custom"
+                boton.texto_boton.text_color = paleta["blanco"]
+            else:
+                boton.style = "outlined"
+                boton.md_bg_color = paleta["tarjeta"]
+                boton.texto_boton.theme_text_color = "Custom"
+                boton.texto_boton.text_color = paleta["azul_secundario"]
 
     # ========================================================
     # TEMA
@@ -917,6 +975,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         self.boton_limpiar.md_bg_color = (
             paleta["tarjeta_secundaria"]
         )
+        self.actualizar_botones_tipo()
 
     # ========================================================
     # CÁLCULO
@@ -947,7 +1006,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             self.entrada_dias.text
         )
 
-        tipo_mostrado = self.boton_tipo.texto_boton.text
+        tipo_mostrado = self.tipo_seleccionado
         tipo_incapacidad = TIPOS_MOSTRADOS[tipo_mostrado]
 
         return {
@@ -1013,7 +1072,8 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             )
 
         try:
-            return float(texto)
+            texto_limpio = texto.replace(".", "")
+            return float(texto_limpio)
 
         except ValueError as error:
             raise ValueError(
@@ -1073,9 +1133,9 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         self.entrada_salario.text = ""
         self.entrada_dias.text = ""
 
-        self.boton_tipo.actualizar_texto(
-            VALOR_TIPO_INICIAL
-        )
+        self.tipo_seleccionado = VALOR_TIPO_INICIAL
+        self.actualizar_botones_tipo()
+        
 
         self.resultado.text = TEXTO_RESULTADO_INICIAL
         self.entrada_salario.focus = True
