@@ -78,7 +78,7 @@ TEXTO_BOTON_ENTENDIDO = "Entendido"
 
 TEXTO_TITULO_ERROR = "Revisa los datos"
 
-VALOR_TIPO_INICIAL = TIPO_ENFERMEDAD_GENERAL
+VALOR_TIPO_INICIAL = None
 
 # ============================================================
 # CONSTANTES DE DIMENSIONES
@@ -463,7 +463,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
     ) -> MDLabel:
         """Crea una etiqueta y la registra para aplicar temas."""
         etiqueta = MDLabel(
-            text=texto,
+            text = texto,
             **kwargs,
         )
 
@@ -477,22 +477,22 @@ class CalculadoraIncapacidadGUI(BoxLayout):
     def crear_encabezado(self) -> None:
         """Crea el encabezado principal."""
         encabezado = BoxLayout(
-            orientation="horizontal",
-            spacing=ESPACIADO_ENCABEZADO,
-            size_hint_y=None,
-            height=ALTURA_ENCABEZADO,
+            orientation = "horizontal",
+            spacing = ESPACIADO_ENCABEZADO,
+            size_hint_y = None,
+            height = ALTURA_ENCABEZADO,
         )
 
         textos_encabezado = BoxLayout(
-            orientation="vertical",
+            orientation = "vertical",
         )
 
         titulo = self.crear_label(
             TITULO_APLICACION,
-            bold=True,
-            font_size="26sp",
-            halign="left",
-            valign="middle",
+            bold = True,
+            font_size = "26sp",
+            halign = "left",
+            valign = "middle",
         )
 
         configurar_texto_ajustable(titulo)
@@ -500,14 +500,14 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         textos_encabezado.add_widget(titulo)
 
         self.boton_tema = BotonRedondeado(
-            text=TEXTO_TEMA_AUTOMATICO,
-            style="outlined",
-            size_hint_x=None,
-            width=dp(180),
+            text = TEXTO_TEMA_AUTOMATICO,
+            style = "outlined",
+            size_hint_x = None,
+            width = dp(180),
         )
 
         self.boton_tema.bind(
-            on_release=self.abrir_menu_tema
+            on_release = self.abrir_menu_tema
         )
 
         encabezado.add_widget(textos_encabezado)
@@ -522,14 +522,14 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         )
 
         contenido = BoxLayout(
-            orientation="vertical",
-            spacing=ESPACIADO_CONTENIDO,
-            padding=[0, dp(8), 0, dp(20)],
-            size_hint_y=None,
+            orientation = "vertical",
+            spacing = ESPACIADO_CONTENIDO,
+            padding = [0, dp(8), 0, dp(20)],
+            size_hint_y = None,
         )
 
         contenido.bind(
-            minimum_height=contenido.setter("height")
+            minimum_height = contenido.setter("height")
         )
 
         self.crear_tarjeta_formulario(contenido)
@@ -546,11 +546,11 @@ class CalculadoraIncapacidadGUI(BoxLayout):
     ) -> None:
         """Crea la tarjeta principal del formulario."""
         tarjeta = Tarjeta(
-            orientation="vertical",
-            spacing=ESPACIADO_TARJETA,
-            padding=[dp(28), dp(30), dp(28), dp(24)],
-            size_hint_y=None,
-            height=ALTURA_TARJETA_FORMULARIO,
+            orientation = "vertical",
+            spacing = ESPACIADO_TARJETA,
+            padding = [dp(28), dp(30), dp(28), dp(24)],
+            size_hint_y = None,
+            height = ALTURA_TARJETA_FORMULARIO,
         )
 
         self.tarjetas.append(tarjeta)
@@ -558,12 +558,12 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         tarjeta.add_widget(
             self.crear_label(
                 "Ingresa los Datos de la Incapacidad",
-                bold=True,
-                font_size="18sp",
-                size_hint_y=None,
-                height=dp(40),
-                halign="center",
-                valign="middle"
+                bold = True,
+                font_size = "18sp",
+                size_hint_y = None,
+                height = dp(40),
+                halign = "center",
+                valign = "middle"
             )
         )
 
@@ -571,40 +571,40 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         tarjeta.add_widget(
             self.crear_label(
                 "Tipo de Incapacidad",
-                bold=True,
-                font_size="18sp",
-                size_hint_y=None,
-                height=dp(28),
-                halign="left",
+                bold = True,
+                font_size = "18sp",
+                size_hint_y = None,
+                height = dp(28),
+                halign = "left",
             )
         )
 
         contenedor_tipo = BoxLayout(
-            orientation="horizontal",
-            size_hint_y=None,
-            height=ALTURA_BOTON,
+            orientation = "horizontal",
+            size_hint_y = None,
+            height = ALTURA_BOTON,
         )
 
         contenedor_tipo.add_widget(BoxLayout())
 
         opciones_tipo = BoxLayout(
-            orientation="horizontal",
-            spacing=dp(20),
-            size_hint_y=None,
-            height=ALTURA_BOTON,
-            padding=[dp(60), 0, dp(60), 0],
+            orientation = "horizontal",
+            spacing = dp(20),
+            size_hint_y = None,
+            height = ALTURA_BOTON,
+            padding = [dp(60), 0, dp(60), 0],
         )
 
         for tipo in TIPOS_MOSTRADOS:
             boton = BotonRedondeado(
-                text=tipo,
-                style="outlined",
-                size_hint=(1, None),
-                height=ALTURA_BOTON,
+                text = tipo,
+                style = "outlined",
+                size_hint = (1, None),
+                height = ALTURA_BOTON,
             )
 
             boton.bind(
-                on_release=lambda _boton, tipo=tipo: (
+                on_release = lambda _boton, tipo = tipo: (
                     self.seleccionar_tipo(tipo)
                 )
             )
@@ -617,19 +617,19 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         tarjeta.add_widget(
             self.crear_label(
                 "Salario Mensual (COP)",
-                bold=True,
-                font_size="15sp",
-                size_hint_y=None,
-                height=dp(28),
-                halign="left",
+                bold = True,
+                font_size = "15sp",
+                size_hint_y = None,
+                height = dp(28),
+                halign = "left",
             )
         )
 
         self.entrada_salario = CampoSalario(
-            hint_text="Ejemplo: 2.500.000",
-            multiline=False,
-            size_hint_y=None,
-            height=ALTURA_CAMPO,
+            hint_text = "Ejemplo: 2.500.000",
+            multiline = False,
+            size_hint_y = None,
+            height = ALTURA_CAMPO,
         )
 
         self.campos.append(self.entrada_salario)
@@ -638,30 +638,30 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         tarjeta.add_widget(
             self.crear_label(
                 "Días de Incapacidad",
-                bold=True,
+                bold = True,
                 font_size="15sp",
-                size_hint_y=None,
-                height=dp(28),
-                halign="left",
+                size_hint_y = None,
+                height = dp(28),
+                halign = "left",
             )
         )
 
         self.entrada_dias = CampoTexto(
-            hint_text="Ejemplo: 5",
-            multiline=False,
-            input_filter="int",
-            size_hint_y=None,
-            height=ALTURA_CAMPO,
+            hint_text = "Ejemplo: 5",
+            multiline = False,
+            input_filter = "int",
+            size_hint_y = None,
+            height = ALTURA_CAMPO,
         )
 
         self.campos.append(self.entrada_dias)
         tarjeta.add_widget(self.entrada_dias)
 
         botones = BoxLayout(
-            orientation="horizontal",
-            spacing=dp(10),
-            size_hint_y=None,
-            height=dp(50),
+            orientation = "horizontal",
+            spacing = dp(10),
+            size_hint_y = None,
+            height = dp(50),
         )
 
         self.boton_calcular = BotonRedondeado(
@@ -694,33 +694,33 @@ class CalculadoraIncapacidadGUI(BoxLayout):
     ) -> None:
         """Crea la tarjeta donde se muestra el resultado."""
         self.tarjeta_resultado = Tarjeta(
-            orientation="vertical",
-            spacing=dp(5),
-            padding=[dp(26), dp(28), dp(26), dp(22)],
-            size_hint_y=None,
-            height=ALTURA_TARJETA_RESULTADO,
+            orientation = "vertical",
+            spacing = dp(5),
+            padding = [dp(26), dp(28), dp(26), dp(22)],
+            size_hint_y = None,
+            height = ALTURA_TARJETA_RESULTADO,
         )
 
         self.tarjetas.append(self.tarjeta_resultado)
 
         titulo_resultado = self.crear_label(
             "Resultado Estimado",
-            bold=True,
-            secundario=True,
-            font_size="18sp",
-            size_hint_y=None,
-            height=dp(30),
-            halign="left",
+            bold = True,
+            secundario = True,
+            font_size = "18sp",
+            size_hint_y = None,
+            height = dp(30),
+            halign = "left",
         )
 
         self.resultado = self.crear_label(
             TEXTO_RESULTADO_INICIAL,
-            bold=True,
-            font_size="22sp",
-            size_hint_y=None,
-            height=dp(55),
-            halign="left",
-            valign="middle",
+            bold = True,
+            font_size = "22sp",
+            size_hint_y = None,
+            height = dp(55),
+            halign = "left",
+            valign = "middle",
         )
 
         configurar_texto_ajustable(self.resultado)
@@ -736,11 +736,11 @@ class CalculadoraIncapacidadGUI(BoxLayout):
     ) -> None:
         """Crea la tarjeta donde se muestra el historial."""
         tarjeta = Tarjeta(
-            orientation="vertical",
-            spacing=dp(8),
-            padding=[dp(26), dp(28), dp(26), dp(22)],
-            size_hint_y=None,
-            height=ALTURA_TARJETA_HISTORIAL,
+            orientation = "vertical",
+            spacing = dp(8),
+            padding = [dp(26), dp(28), dp(26), dp(22)],
+            size_hint_y = None,
+            height = ALTURA_TARJETA_HISTORIAL,
         )
 
         self.tarjetas.append(tarjeta)
@@ -748,22 +748,22 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         tarjeta.add_widget(
             self.crear_label(
                 "Historial de Cálculos",
-                bold=True,
-                font_size="18sp",
-                size_hint_y=None,
-                height=dp(35),
-                halign="left",
+                bold = True,
+                font_size = "18sp",
+                size_hint_y = None,
+                height = dp(35),
+                halign = "left",
             )
         )
 
         tarjeta.add_widget(
             self.crear_label(
                 "Los cálculos guardados aparecerán aquí.",
-                secundario=True,
-                font_size="13sp",
-                size_hint_y=None,
-                height=dp(24),
-                halign="left",
+                secundario = True,
+                font_size = "13sp",
+                size_hint_y = None,
+                height = dp(24),
+                halign = "left",
             )
         )
 
@@ -771,11 +771,11 @@ class CalculadoraIncapacidadGUI(BoxLayout):
 
         self.texto_historial = self.crear_label(
             TEXTO_HISTORIAL_VACIO,
-            secundario=True,
-            size_hint_y=None,
-            halign="left",
-            valign="top",
-            font_size="14sp",
+            secundario = True,
+            size_hint_y = None,
+            halign = "left",
+            valign = "top",
+            font_size = "14sp",
         )
 
         self.texto_historial.bind(
@@ -805,11 +805,11 @@ class CalculadoraIncapacidadGUI(BoxLayout):
     ) -> None:
         """Crea la tarjeta informativa."""
         tarjeta = Tarjeta(
-            orientation="vertical",
-            spacing=dp(10),
-            padding=[dp(30), dp(30), dp(30), dp(26)],
-            size_hint_y=None,
-            height=ALTURA_TARJETA_INFORMACION,
+            orientation = "vertical",
+            spacing = dp(6),
+            padding = [dp(28), dp(28), dp(28), dp(20)],
+            size_hint_y = None,
+            height = ALTURA_TARJETA_INFORMACION,
         )
 
         self.tarjetas.append(tarjeta)
@@ -818,28 +818,29 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             self.crear_label(
                 "¿Cómo Funciona Esta Herramienta?",
                 bold=True,
-                font_size="18sp",
-                size_hint_y=None,
-                height=dp(35),
-                halign="left",
+                font_size = "18sp",
+                size_hint_y = None,
+                height = dp(35),
+                halign = "left",
             )
         )
 
         textos_informacion = [
-            "• Enfermedad general: reconocimiento del 66,67%.",
-            "• Maternidad: reconocimiento del 100%.",
-            "• Riesgo laboral: reconocimiento del 100%.",
+            "• [b]Enfermedad general: [/b]Reconocimiento del 66,67%.",
+            "• [b]Maternidad: [/b]Reconocimiento del 100%.",
+            "• [b]Riesgo laboral: [/b]Reconocimiento del 100%.",
         ]
 
         for texto in textos_informacion:
             tarjeta.add_widget(
                 self.crear_label(
                     texto,
-                    secundario=True,
-                    font_size="14sp",
-                    size_hint_y=None,
-                    height=dp(30),
-                    halign="left",
+                    secundario = True,
+                    markup = True,
+                    font_size = "14sp",
+                    size_hint_y = None,
+                    height = dp(30),
+                    halign = "left",
                 )
             )
 
@@ -847,11 +848,11 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             self.crear_label(
                 "Los valores corresponden a las reglas "
                 "definidas en el proyecto.",
-                secundario=True,
-                font_size="12sp",
-                size_hint_y=None,
-                height=dp(35),
-                halign="left",
+                secundario = True,
+                font_size = "12sp",
+                size_hint_y = None,
+                height = dp(35),
+                halign = "left",
             )
         )
 
@@ -1007,6 +1008,10 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         )
 
         tipo_mostrado = self.tipo_seleccionado
+        if tipo_mostrado is None:
+            raise ValueError(
+                "Debes Seleccionar un Tipo de Incapacidad"
+            )
         tipo_incapacidad = TIPOS_MOSTRADOS[tipo_mostrado]
 
         return {
@@ -1055,9 +1060,10 @@ class CalculadoraIncapacidadGUI(BoxLayout):
     ) -> None:
         """Muestra el resultado del cálculo."""
         self.resultado.text = (
+            f"Pago Estimado de la Incapacidad:\n"
             f"{formatear_cop(pago)} COP\n"
             f"{tipo_incapacidad} | {dias} días | "
-            f"Caso #{id_caso}"
+            f"Caso {id_caso}"
         )
 
     def convertir_numero(
@@ -1117,7 +1123,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
     def formatear_caso_historial(self, caso: dict) -> str:
         """Convierte un caso almacenado en texto."""
         return (
-            f"Caso #{caso['id']} | "
+            f"Caso {caso['id']} | "
             f"{caso['tipo_incapacidad']} | "
             f"{caso['dias']} días\n"
             f"Salario: {formatear_cop(caso['salario'])} | "
