@@ -153,18 +153,25 @@ La aplicación cuenta con una interfaz gráfica desarrollada utilizando **Kivy**
 
 Entre sus funcionalidades se encuentran:
 
-- Ingreso del salario mensual.
+- Ingreso del salario mensual en pesos colombianos (COP).
 - Ingreso de los días de incapacidad.
-- Selección del tipo de incapacidad.
-- Cálculo del valor estimado.
-- Presentación visual del resultado.
-- Limpieza de los campos.
-- Manejo amigable de errores.
-- Historial de casos calculados.
-- Persistencia de información.
-- Tema claro.
-- Tema oscuro.
-- Tema automático.
+- Selección del tipo de incapacidad mediante botones independientes para enfermedad general, maternidad y riesgo laboral.
+- Identificación visual del tipo de incapacidad seleccionada.
+- Cálculo y presentación del pago estimado correspondiente a la incapacidad.
+- Visualización del tipo de incapacidad, número de días y número de caso asociado al resulado.
+- Limpieza de los campos del formulario.
+- Validación de los datos ingresados y presentación de mensajes comprensibles para el usuario.
+- Historial de los casos calculados.
+- Persistencia de los casos mediantes SQLite.
+- Selección de tema automático, claro u oscuro.
+- Adaptación de los elementos visuales de acuerdo con el tema seleccionado
+
+### Formato del salario
+
+El campo de salario mensual incorpora separadores de miles mientras el usuario ingresa el valor, facilitando su lectura. Por ejemplo:
+
+```text
+2500000 -> 2.500.000```
 
 La interfaz consume la lógica existente del proyecto y funciona como una nueva capa de presentación para facilitar la interacción del usuario.
 
