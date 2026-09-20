@@ -171,7 +171,8 @@ Entre sus funcionalidades se encuentran:
 El campo de salario mensual incorpora separadores de miles mientras el usuario ingresa el valor, facilitando su lectura. Por ejemplo:
 
 ```text
-2500000 -> 2.500.000```
+2500000 -> 2.500.000
+```
 
 La interfaz consume la lógica existente del proyecto y funciona como una nueva capa de presentación para facilitar la interacción del usuario.
 
