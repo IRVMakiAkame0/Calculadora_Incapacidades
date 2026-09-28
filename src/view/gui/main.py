@@ -579,32 +579,40 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             )
         )
 
-        contenedor_tipo = BoxLayout(
-            orientation = "horizontal",
+        # Contenedor desplazable para los tipos de incapacidad
+        scroll_tipos = ScrollView(
+            do_scroll_x = True,
+            do_scroll_y = False,
+            bar_width = dp(3),
+            scroll_type = ["content"],
             size_hint_y = None,
             height = ALTURA_BOTON,
         )
 
-        contenedor_tipo.add_widget(BoxLayout())
-
         opciones_tipo = BoxLayout(
             orientation = "horizontal",
-            spacing = dp(20),
-            size_hint_y = None,
+            spacing = dp(10),
+            padding = [dp(4), 0, dp(4), 0],
+            size_hint = (None, None),
             height = ALTURA_BOTON,
-            padding = [dp(60), 0, dp(60), 0],
+        )
+
+        # El ancho del contenedor depende del ancho total de los botones
+        opciones_tipo.bind(
+            minimum_width = opciones_tipo.setter("width")
         )
 
         for tipo in TIPOS_MOSTRADOS:
             boton = BotonRedondeado(
                 text = tipo,
                 style = "outlined",
-                size_hint = (1, None),
+                size_hint = (None, None),
+                width = dp(190),
                 height = ALTURA_BOTON,
             )
 
             boton.bind(
-                on_release = lambda _boton, tipo = tipo: (
+                on_release = lambda _boton, tipo=tipo: (
                     self.seleccionar_tipo(tipo)
                 )
             )
@@ -612,7 +620,8 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             self.botones_tipo[tipo] = boton
             opciones_tipo.add_widget(boton)
 
-        tarjeta.add_widget(opciones_tipo)
+        scroll_tipos.add_widget(opciones_tipo)
+        tarjeta.add_widget(scroll_tipos)
 
         tarjeta.add_widget(
             self.crear_label(
@@ -665,21 +674,23 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         )
 
         self.boton_calcular = BotonRedondeado(
-            text=TEXTO_BOTON_CALCULAR,
-            style="filled",
+            text = TEXTO_BOTON_CALCULAR,
+            style = "filled",
+            size_hint_x = 0.7,
         )
 
         self.boton_calcular.bind(
-            on_release=self.calcular
+            on_release = self.calcular
         )
 
         self.boton_limpiar = BotonRedondeado(
-            text=TEXTO_BOTON_LIMPIAR,
-            style="outlined",
+            text = TEXTO_BOTON_LIMPIAR,
+            style = "outlined",
+            size_hint_x = 0.3,
         )
 
         self.boton_limpiar.bind(
-            on_release=self.limpiar
+            on_release = self.limpiar
         )
 
         botones.add_widget(self.boton_calcular)
@@ -692,41 +703,123 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         self,
         contenido: BoxLayout,
     ) -> None:
-        """Crea la tarjeta donde se muestra el resultado."""
+        """Crea una tarjeta de resultado desplegable."""
+
+        # La tarjeta comienza cerrada
+        self.resultado_expandido = False
+
         self.tarjeta_resultado = Tarjeta(
-            orientation = "vertical",
-            spacing = dp(5),
-            padding = [dp(26), dp(28), dp(26), dp(22)],
-            size_hint_y = None,
-            height = ALTURA_TARJETA_RESULTADO,
+            orientation="vertical",
+            spacing=dp(8),
+            padding=[dp(22), dp(12), dp(22), dp(12)],
+            size_hint_y=None,
+            height=dp(60),
         )
 
         self.tarjetas.append(self.tarjeta_resultado)
 
-        titulo_resultado = self.crear_label(
+        # --------------------------------------------------------
+        # ENCABEZADO
+        # --------------------------------------------------------
+
+        encabezado_resultado = BoxLayout(
+            orientation="horizontal",
+            size_hint_y=None,
+            height=dp(36),
+            spacing=dp(8),
+        )
+
+        self.titulo_resultado = self.crear_label(
             "Resultado Estimado",
-            bold = True,
-            secundario = True,
-            font_size = "18sp",
-            size_hint_y = None,
-            height = dp(30),
-            halign = "left",
+            bold=True,
+            secundario=True,
+            font_size="18sp",
+            halign="left",
+            valign="middle",
+        )
+
+        configurar_texto_ajustable(
+            self.titulo_resultado
+        )
+
+        self.boton_expandir_resultado = BotonRedondeado(
+            text="▼",
+            style="text",
+            size_hint=(None, None),
+            width=dp(45),
+            height=dp(36),
+        )
+
+        self.boton_expandir_resultado.bind(
+            on_release=self.alternar_resultado
+        )
+
+        encabezado_resultado.add_widget(
+            self.titulo_resultado
+        )
+        encabezado_resultado.add_widget(
+            self.boton_expandir_resultado
+        )
+
+        self.tarjeta_resultado.add_widget(
+            encabezado_resultado
+        )
+
+        # --------------------------------------------------------
+        # CONTENIDO DEL RESULTADO
+        # --------------------------------------------------------
+
+        self.scroll_resultado = ScrollView(
+            do_scroll_x=False,
+            do_scroll_y=True,
+            size_hint_y=None,
+            height=0,
+            opacity=0,
+        )
+
+        contenedor_resultado = BoxLayout(
+            orientation="vertical",
+            size_hint_y=None,
+            padding=[0, dp(8), 0, dp(8)],
+        )
+
+        contenedor_resultado.bind(
+            minimum_height=contenedor_resultado.setter("height")
         )
 
         self.resultado = self.crear_label(
             TEXTO_RESULTADO_INICIAL,
-            bold = True,
-            font_size = "22sp",
-            size_hint_y = None,
-            height = dp(55),
-            halign = "left",
-            valign = "middle",
+            bold=True,
+            font_size="16sp",
+            size_hint_y=None,
+            halign="left",
+            valign="top",
         )
 
-        configurar_texto_ajustable(self.resultado)
+        self.resultado.bind(
+            width=lambda instancia, ancho: setattr(
+                instancia,
+                "text_size",
+                (ancho, None),
+            )
+        )
 
-        self.tarjeta_resultado.add_widget(titulo_resultado)
-        self.tarjeta_resultado.add_widget(self.resultado)
+        self.resultado.bind(
+            texture_size=lambda instancia, tamano: setattr(
+                instancia,
+                "height",
+                tamano[1] + dp(12),
+            )
+        )
+
+        contenedor_resultado.add_widget(self.resultado)
+        self.scroll_resultado.add_widget(
+            contenedor_resultado
+        )
+
+        self.tarjeta_resultado.add_widget(
+            self.scroll_resultado
+        )
 
         contenido.add_widget(self.tarjeta_resultado)
 
@@ -734,48 +827,111 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         self,
         contenido: BoxLayout,
     ) -> None:
-        """Crea la tarjeta donde se muestra el historial."""
-        tarjeta = Tarjeta(
-            orientation = "vertical",
-            spacing = dp(8),
-            padding = [dp(26), dp(28), dp(26), dp(22)],
-            size_hint_y = None,
-            height = ALTURA_TARJETA_HISTORIAL,
+        """Crea una tarjeta de historial desplegable."""
+
+        # El historial comienza cerrado
+        self.historial_expandido = False
+
+        self.tarjeta_historial = Tarjeta(
+            orientation="vertical",
+            spacing=dp(8),
+            padding=[dp(22), dp(12), dp(22), dp(12)],
+            size_hint_y=None,
+            height=dp(60),
         )
 
-        self.tarjetas.append(tarjeta)
+        self.tarjetas.append(self.tarjeta_historial)
 
-        tarjeta.add_widget(
-            self.crear_label(
-                "Historial de Cálculos",
-                bold = True,
-                font_size = "18sp",
-                size_hint_y = None,
-                height = dp(35),
-                halign = "left",
+        # --------------------------------------------------------
+        # ENCABEZADO
+        # --------------------------------------------------------
+
+        encabezado_historial = BoxLayout(
+            orientation="horizontal",
+            size_hint_y=None,
+            height=dp(36),
+            spacing=dp(8),
+        )
+
+        titulo_historial = self.crear_label(
+            "Historial de Cálculos",
+            bold=True,
+            font_size="18sp",
+            halign="left",
+            valign="middle",
+        )
+
+        configurar_texto_ajustable(titulo_historial)
+
+        self.boton_expandir_historial = BotonRedondeado(
+            text="▼",
+            style="text",
+            size_hint=(None, None),
+            width=dp(45),
+            height=dp(36),
+        )
+
+        self.boton_expandir_historial.bind(
+            on_release=self.alternar_historial
+        )
+
+        encabezado_historial.add_widget(
+            titulo_historial
+        )
+
+        encabezado_historial.add_widget(
+            self.boton_expandir_historial
+        )
+
+        self.tarjeta_historial.add_widget(
+            encabezado_historial
+        )
+
+        # --------------------------------------------------------
+        # CONTENIDO DESPLAZABLE DEL HISTORIAL
+        # --------------------------------------------------------
+
+        self.scroll_historial = ScrollView(
+            do_scroll_x=False,
+            do_scroll_y=True,
+            size_hint_y=None,
+            height=0,
+            opacity=0,
+        )
+
+        contenedor_historial = BoxLayout(
+            orientation="vertical",
+            spacing=dp(8),
+            padding=[0, dp(8), 0, dp(8)],
+            size_hint_y=None,
+        )
+
+        contenedor_historial.bind(
+            minimum_height=contenedor_historial.setter(
+                "height"
             )
         )
 
-        tarjeta.add_widget(
-            self.crear_label(
-                "Los cálculos guardados aparecerán aquí.",
-                secundario = True,
-                font_size = "13sp",
-                size_hint_y = None,
-                height = dp(24),
-                halign = "left",
-            )
+        descripcion_historial = self.crear_label(
+            "Los cálculos guardados aparecerán aquí.",
+            secundario=True,
+            font_size="13sp",
+            size_hint_y=None,
+            height=dp(28),
+            halign="left",
         )
 
-        scroll = ScrollView()
+        contenedor_historial.add_widget(
+            descripcion_historial
+        )
 
         self.texto_historial = self.crear_label(
             TEXTO_HISTORIAL_VACIO,
-            secundario = True,
-            size_hint_y = None,
-            halign = "left",
-            valign = "top",
-            font_size = "14sp",
+            secundario=True,
+            size_hint_y=None,
+            halign="left",
+            valign="top",
+            font_size="14sp",
         )
 
         self.texto_historial.bind(
@@ -790,73 +946,279 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             texture_size=lambda instancia, tamano: setattr(
                 instancia,
                 "height",
-                tamano[1],
+                tamano[1] + dp(10),
             )
         )
 
-        scroll.add_widget(self.texto_historial)
-        tarjeta.add_widget(scroll)
+        contenedor_historial.add_widget(
+            self.texto_historial
+        )
 
-        contenido.add_widget(tarjeta)
+        self.scroll_historial.add_widget(
+            contenedor_historial
+        )
+
+        self.tarjeta_historial.add_widget(
+            self.scroll_historial
+        )
+
+        contenido.add_widget(
+            self.tarjeta_historial
+        )
 
     def crear_tarjeta_informacion(
         self,
         contenido: BoxLayout,
     ) -> None:
-        """Crea la tarjeta informativa."""
-        tarjeta = Tarjeta(
-            orientation = "vertical",
-            spacing = dp(6),
-            padding = [dp(28), dp(28), dp(28), dp(20)],
-            size_hint_y = None,
-            height = ALTURA_TARJETA_INFORMACION,
+        """Crea la tarjeta informativa desplegable."""
+
+        self.informacion_expandida = False
+
+        self.tarjeta_informacion = Tarjeta(
+            orientation="vertical",
+            spacing=dp(8),
+            padding=[dp(22), dp(12), dp(22), dp(12)],
+            size_hint_y=None,
+            height=dp(60),
         )
 
-        self.tarjetas.append(tarjeta)
+        self.tarjetas.append(self.tarjeta_informacion)
 
-        tarjeta.add_widget(
-            self.crear_label(
-                "¿Cómo Funciona Esta Herramienta?",
-                bold=True,
-                font_size = "18sp",
-                size_hint_y = None,
-                height = dp(35),
-                halign = "left",
+        # --------------------------------------------------------
+        # ENCABEZADO
+        # --------------------------------------------------------
+
+        encabezado_informacion = BoxLayout(
+            orientation="horizontal",
+            size_hint_y=None,
+            height=dp(36),
+            spacing=dp(8),
+        )
+
+        titulo_informacion = self.crear_label(
+            "¿Cómo Funciona Esta Herramienta?",
+            bold=True,
+            font_size="17sp",
+            halign="left",
+            valign="middle",
+        )
+
+        configurar_texto_ajustable(titulo_informacion)
+
+        self.boton_expandir_informacion = BotonRedondeado(
+            text="▼",
+            style="text",
+            size_hint=(None, None),
+            width=dp(45),
+            height=dp(36),
+        )
+
+        self.boton_expandir_informacion.bind(
+            on_release=self.alternar_informacion
+        )
+
+        encabezado_informacion.add_widget(
+            titulo_informacion
+        )
+
+        encabezado_informacion.add_widget(
+            self.boton_expandir_informacion
+        )
+
+        self.tarjeta_informacion.add_widget(
+            encabezado_informacion
+        )
+
+        # --------------------------------------------------------
+        # CONTENIDO DESPLAZABLE
+        # --------------------------------------------------------
+
+        self.scroll_informacion = ScrollView(
+            do_scroll_x=False,
+            do_scroll_y=True,
+            size_hint_y=None,
+            height=0,
+            opacity=0,
+        )
+
+        contenedor_informacion = BoxLayout(
+            orientation="vertical",
+            spacing=dp(12),
+            padding=[0, dp(8), 0, dp(8)],
+            size_hint_y=None,
+        )
+
+        contenedor_informacion.bind(
+            minimum_height=contenedor_informacion.setter(
+                "height"
             )
         )
 
         textos_informacion = [
-            "• [b]Enfermedad general: [/b]Reconocimiento del 66,67%.",
-            "• [b]Maternidad: [/b]Reconocimiento del 100%.",
-            "• [b]Riesgo laboral: [/b]Reconocimiento del 100%.",
+            (
+                "• [b]Enfermedad general:[/b]\n"
+                "  Reconocimiento del 66,67%."
+            ),
+            (
+                "• [b]Maternidad:[/b]\n"
+                "  Reconocimiento del 100%."
+            ),
+            (
+                "• [b]Riesgo laboral:[/b]\n"
+                "  Reconocimiento del 100%."
+            ),
         ]
 
         for texto in textos_informacion:
-            tarjeta.add_widget(
-                self.crear_label(
-                    texto,
-                    secundario = True,
-                    markup = True,
-                    font_size = "14sp",
-                    size_hint_y = None,
-                    height = dp(30),
-                    halign = "left",
+
+            etiqueta = self.crear_label(
+                texto,
+                secundario=True,
+                markup=True,
+                font_size="14sp",
+                size_hint_y=None,
+                halign="left",
+                valign="top",
+            )
+
+            etiqueta.bind(
+                width=lambda instancia, ancho: setattr(
+                    instancia,
+                    "text_size",
+                    (ancho, None),
                 )
             )
 
-        tarjeta.add_widget(
-            self.crear_label(
+            etiqueta.bind(
+                texture_size=lambda instancia, tamano: setattr(
+                    instancia,
+                    "height",
+                    tamano[1] + dp(8),
+                )
+            )
+
+            contenedor_informacion.add_widget(etiqueta)
+
+        nota = self.crear_label(
+            (
                 "Los valores corresponden a las reglas "
-                "definidas en el proyecto.",
-                secundario = True,
-                font_size = "12sp",
-                size_hint_y = None,
-                height = dp(35),
-                halign = "left",
+                "definidas en el proyecto."
+            ),
+            secundario=True,
+            font_size="12sp",
+            size_hint_y=None,
+            halign="left",
+            valign="top",
+        )
+
+        nota.bind(
+            width=lambda instancia, ancho: setattr(
+                instancia,
+                "text_size",
+                (ancho, None),
             )
         )
 
-        contenido.add_widget(tarjeta)
+        nota.bind(
+            texture_size=lambda instancia, tamano: setattr(
+                instancia,
+                "height",
+                tamano[1] + dp(8),
+            )
+        )
+
+        contenedor_informacion.add_widget(nota)
+
+        self.scroll_informacion.add_widget(
+            contenedor_informacion
+        )
+
+        self.tarjeta_informacion.add_widget(
+            self.scroll_informacion
+        )
+
+        contenido.add_widget(
+            self.tarjeta_informacion
+        )
+        
+    def alternar_resultado(self, *_args) -> None:
+        """Abre o cierra la tarjeta de resultado."""
+        self.resultado_expandido = (
+            not self.resultado_expandido
+        )
+
+        if self.resultado_expandido:
+            
+            self.titulo_resultado.text = (
+                "Resultado Estimado"
+            )
+            
+            self.tarjeta_resultado.height = dp(210)
+            self.scroll_resultado.height = dp(135)
+            self.scroll_resultado.opacity = 1
+
+            self.boton_expandir_resultado.actualizar_texto(
+                "-"
+            )
+            
+        else:
+            self.tarjeta_resultado.height = dp(60)
+            self.scroll_resultado.height = 0
+            self.scroll_resultado.opacity = 0
+
+            self.boton_expandir_resultado.actualizar_texto(
+                "+"
+            )
+            
+    def alternar_historial(self, *_args) -> None:
+        """Abre o cierra el historial de cálculos."""
+
+        self.historial_expandido = (
+            not self.historial_expandido
+        )
+
+        if self.historial_expandido:
+            self.tarjeta_historial.height = dp(280)
+            self.scroll_historial.height = dp(205)
+            self.scroll_historial.opacity = 1
+
+            self.boton_expandir_historial.actualizar_texto(
+                "-"
+            )
+
+        else:
+            self.tarjeta_historial.height = dp(60)
+            self.scroll_historial.height = 0
+            self.scroll_historial.opacity = 0
+
+            self.boton_expandir_historial.actualizar_texto(
+                "+"
+            )
+            
+    def alternar_informacion(self, *_args) -> None:
+        """Abre o cierra la información de la herramienta."""
+
+        self.informacion_expandida = (
+            not self.informacion_expandida
+        )
+
+        if self.informacion_expandida:
+            self.tarjeta_informacion.height = dp(280)
+            self.scroll_informacion.height = dp(205)
+            self.scroll_informacion.opacity = 1
+
+            self.boton_expandir_informacion.actualizar_texto(
+                "-"
+            )
+
+        else:
+            self.tarjeta_informacion.height = dp(60)
+            self.scroll_informacion.height = 0
+            self.scroll_informacion.opacity = 0
+
+            self.boton_expandir_informacion.actualizar_texto(
+                "+"
+            )
 
     # ========================================================
     # MENÚS
@@ -1064,6 +1426,10 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             f"{formatear_cop(pago)} COP\n"
             f"{tipo_incapacidad} | {dias} días | "
             f"Caso {id_caso}"
+        )
+        
+        self.titulo_resultado.text = (
+            "Resultado Estimado | Nuevo |"
         )
 
     def convertir_numero(
