@@ -47,7 +47,6 @@ service-account.json
 .idea/
 *.swp
 *.swo
-.DS_Store
 
 # _______________________________________
 # Testing / Coverage
@@ -104,8 +103,6 @@ bin/
 # _______________________________________
 Calculadora_Incapacidades_Windows/
 Calculadora_Incapacidades_Windows.zip
-build/
-dist
 
 # _______________________________________
 # PyInstaller
