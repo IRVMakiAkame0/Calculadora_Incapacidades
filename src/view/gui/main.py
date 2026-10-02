@@ -104,7 +104,7 @@ ALTURA_BOTON = dp(48)
 
 # Alturas de las tarjetas desplegables
 ALTURA_CABECERA_DESPLEGABLE = dp(72)
-ALTURA_RESULTADO_EXPANDIDO = dp(135)
+ALTURA_RESULTADO_EXPANDIDO = dp(170)
 ALTURA_HISTORIAL_EXPANDIDO = dp(300)
 ALTURA_INFORMACION_EXPANDIDA = dp(255)
 
@@ -266,12 +266,21 @@ def formatear_cop(valor: float) -> str:
 
 
 def configurar_texto_ajustable(etiqueta: MDLabel) -> None:
-    """Configura una etiqueta para adaptar el texto a su tamaño."""
+    """Configura una etiqueta para adaptar texto y altura."""
+
     etiqueta.bind(
-        size=lambda instancia, tamano: setattr(
+        width=lambda instancia, ancho: setattr(
             instancia,
             "text_size",
-            tamano,
+            (ancho, None),
+        )
+    )
+
+    etiqueta.bind(
+        texture_size=lambda instancia, tamano: setattr(
+            instancia,
+            "height",
+            tamano[1] + dp(10),
         )
     )
 
@@ -517,7 +526,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             ]
 
             # Encabezado.
-            self.encabezado.height = dp(115)
+            self.encabezado.height = dp(95)
             self.encabezado.orientation = "vertical"
             self.encabezado.spacing = dp(6)
 
@@ -532,13 +541,12 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             self.aviso_nuevo_resultado.width = 0
             self.aviso_nuevo_resultado.opacity = 0
 
-            self.boton_resultado.width = dp(40)
-            self.boton_historial.width = dp(40)
-            self.boton_informacion.width = dp(40)
+            self.boton_resultado.width = dp(32)
+            self.boton_informacion.width = dp(32)
 
             # Más margen interno para que el texto no toque los bordes
             self.tarjeta_resultado.padding = [
-                dp(20), dp(14), dp(14), dp(16)
+                dp(16), dp(14), dp(10), dp(8)
             ]
 
             self.tarjeta_historial.padding = [
@@ -557,7 +565,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             self.boton_tema.height = ALTURA_BOTON
             
             self.boton_tema.pos_hint = {
-                "right": 1
+                "center_x": 0.5
             }
 
             # Tipos de incapacidad:
@@ -566,11 +574,16 @@ class CalculadoraIncapacidadGUI(BoxLayout):
                 dp(4), 0, dp(4), 0
             ]
             
-            self.tarjeta_formulario.height = dp(515)
+            self.tarjeta_formulario.height = dp(520)
 
             # Acciones una debajo de la otra.
             self.contenedor_botones_accion.orientation = "vertical"
             self.contenedor_botones_accion.height = dp(108)
+            
+            self.tarjeta_historial.height = dp(300)
+            
+            self.tarjeta_resultado.height = ALTURA_RESULTADO_EXPANDIDO
+            self.contenido_resultado.height = dp(60)
 
         else:
             # Computador/tablet
@@ -580,7 +593,6 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             self.aviso_nuevo_resultado.opacity = 1
 
             self.boton_resultado.width = dp(56)
-            self.boton_historial.width = dp(56)
             self.boton_informacion.width = dp(56)
 
             self.tarjeta_resultado.padding = [
@@ -619,23 +631,21 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             
     def cambiar_estado_tarjeta(
         self,
-        tarjeta: Tarjeta,
-        contenido: BoxLayout,
-        boton: BotonDesplegable,
-        altura_expandida: float,
-    ) -> None:
-        """Expande o contrae una tarjeta desplegable."""
+        tarjeta,
+        contenido,
+        boton,
+    ):
+        """Expande o contrae una tarjeta."""
 
         esta_expandida = getattr(
             tarjeta,
             "esta_expandida",
-            True,
+            True
         )
 
         if esta_expandida:
-            # ----------------------------
             # CONTRAER
-            # ----------------------------
+
             tarjeta.esta_expandida = False
 
             contenido.opacity = 0
@@ -649,24 +659,43 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             )
 
             if tarjeta is self.tarjeta_resultado:
-                self.aviso_nuevo_resultado.text = ""
+
+                contenido.height = self.contenido_resultado.height
+
+                tarjeta.height = (
+                    self.contenido_resultado.height + dp(60)
+                )
+
 
         else:
-            # ----------------------------
             # EXPANDIR
-            # ----------------------------
+
             tarjeta.esta_expandida = True
 
             contenido.opacity = 1
             contenido.disabled = False
 
+
             if tarjeta is self.tarjeta_resultado:
+
                 contenido.height = dp(65)
+                tarjeta.height = ALTURA_RESULTADO_EXPANDIDO
+
 
             elif tarjeta is self.tarjeta_historial:
-                contenido.height = dp(210)
 
-            tarjeta.height = altura_expandida
+                contenido.height = dp(210)
+                tarjeta.height = ALTURA_HISTORIAL_EXPANDIDO
+
+                # obliga a refrescar el historial
+                self.cargar_historial()
+
+
+            elif tarjeta is self.tarjeta_informacion:
+
+                contenido.height = dp(180)
+                tarjeta.height = ALTURA_INFORMACION_EXPANDIDA
+
 
             boton.actualizar_texto(
                 TEXTO_CONTRAER
@@ -815,8 +844,8 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         """Crea la tarjeta principal del formulario."""
         tarjeta = Tarjeta(
             orientation = "vertical",
-            spacing = ESPACIADO_TARJETA,
-            padding = [dp(28), dp(30), dp(28), dp(24)],
+            spacing = dp(12),
+            padding = [dp(20), dp(14), dp(20), dp(18)],
             size_hint_y = None,
             height = ALTURA_TARJETA_FORMULARIO,
         )
@@ -844,7 +873,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
                 bold = True,
                 font_size = "18sp",
                 size_hint_y = None,
-                height = dp(28),
+                height = dp(35),
                 halign = "left",
             )
         )
@@ -853,7 +882,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             do_scroll_x=True,
             do_scroll_y=False,
             size_hint_y=None,
-            height=ALTURA_BOTON + dp(8),
+            height=dp(56),
             bar_width = dp(3),
         )
 
@@ -874,7 +903,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
                 text=tipo,
                 style="outlined",
                 size_hint=(None, None),
-                width=dp(190),
+                width=dp(150),
                 height=ALTURA_BOTON,
             )
 
@@ -975,13 +1004,15 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         self.tarjeta_resultado = Tarjeta(
             orientation="vertical",
             spacing=dp(2),
-            padding=[dp(24), dp(8), dp(18), dp(8)],
+            padding=[dp(24), dp(4), dp(18), dp(4)],
             size_hint_y=None,
             height=ALTURA_RESULTADO_EXPANDIDO,
         )
 
         # Estado inicial
         self.tarjeta_resultado.esta_expandida = True
+        
+        self.tarjeta_resultado.altura_original = ALTURA_RESULTADO_EXPANDIDO
 
         self.tarjetas.append(self.tarjeta_resultado)
 
@@ -993,7 +1024,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             orientation="horizontal",
             spacing=dp(6),
             size_hint_y=None,
-            height=dp(44),
+            height=dp(40),
         )
 
         self.titulo_resultado = self.crear_label(
@@ -1003,10 +1034,6 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             font_size="18sp",
             halign="left",
             valign="middle",
-        )
-
-        configurar_texto_ajustable(
-            self.titulo_resultado
         )
 
         self.aviso_nuevo_resultado = self.crear_label(
@@ -1047,7 +1074,6 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         self.contenido_resultado = BoxLayout(
             orientation="vertical",
             size_hint_y=None,
-            height=dp(65),
         )
 
         self.resultado = self.crear_label(
@@ -1061,6 +1087,10 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         configurar_texto_ajustable(
             self.resultado
         )
+        
+        self.resultado.bind(
+            texture_size=self.actualizar_altura_resultado
+        )
 
         self.contenido_resultado.add_widget(
             self.resultado
@@ -1071,12 +1101,11 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         # ====================================================
 
         self.boton_resultado.bind(
-            on_release=lambda *_args: (
+            on_release=lambda *_: (
                 self.cambiar_estado_tarjeta(
                     self.tarjeta_resultado,
                     self.contenido_resultado,
                     self.boton_resultado,
-                    ALTURA_RESULTADO_EXPANDIDO,
                 )
             )
         )
@@ -1098,18 +1127,20 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         self,
         contenido: BoxLayout,
     ) -> None:
-        """Crea la tarjeta desplegable del historial."""
+        """Crea la tarjeta fija del historial."""
 
         self.tarjeta_historial = Tarjeta(
             orientation="vertical",
-            spacing=dp(8),
-            padding=[dp(24), dp(10), dp(18), dp(12)],
+            spacing=dp(5),
+            padding=[dp(24), dp(8), dp(18), dp(8)],
             size_hint_y=None,
-            height=ALTURA_HISTORIAL_EXPANDIDO,
+            height=dp(300),
         )
 
         # Estado inicial
         self.tarjeta_historial.esta_expandida = True
+        
+        self.tarjeta_historial.altura_original = ALTURA_HISTORIAL_EXPANDIDO
 
         self.tarjetas.append(
             self.tarjeta_historial
@@ -1138,17 +1169,11 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             self.titulo_historial
         )
 
-        self.boton_historial = BotonDesplegable(
-            text=TEXTO_CONTRAER,
-        )
-
         cabecera.add_widget(
             self.titulo_historial
         )
 
-        cabecera.add_widget(
-            self.boton_historial
-        )
+
 
         # ====================================================
         # CONTENIDO
@@ -1156,13 +1181,13 @@ class CalculadoraIncapacidadGUI(BoxLayout):
 
         self.contenido_historial = BoxLayout(
             orientation="vertical",
-            spacing=dp(8),
+            spacing=dp(5),
             size_hint_y=None,
-            height=dp(210),
+            height=dp(220),
         )
 
         descripcion = self.crear_label(
-            "Los cálculos guardados aparecerán aquí.",
+            "Últimos cálculos realizados",
             secundario=True,
             font_size="13sp",
             size_hint_y=None,
@@ -1178,7 +1203,11 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         self.scroll_historial = ScrollView(
             do_scroll_x=False,
             do_scroll_y=True,
+            bar_width=dp(8),
         )
+        
+        self.scroll_historial.size_hint_y = None
+        self.scroll_historial.height = dp(180)
 
         self.texto_historial = self.crear_label(
             TEXTO_HISTORIAL_VACIO,
@@ -1220,21 +1249,6 @@ class CalculadoraIncapacidadGUI(BoxLayout):
             self.scroll_historial
         )
 
-        # ====================================================
-        # BOTÓN
-        # ====================================================
-
-        self.boton_historial.bind(
-            on_release=lambda *_args: (
-                self.cambiar_estado_tarjeta(
-                    self.tarjeta_historial,
-                    self.contenido_historial,
-                    self.boton_historial,
-                    ALTURA_HISTORIAL_EXPANDIDO,
-                )
-            )
-        )
-
         self.tarjeta_historial.add_widget(
             cabecera
         )
@@ -1264,6 +1278,8 @@ class CalculadoraIncapacidadGUI(BoxLayout):
 
         # Estado inicial
         self.tarjeta_informacion.esta_expandida = True
+        
+        self.tarjeta_informacion.altura_original = ALTURA_INFORMACION_EXPANDIDA
 
         self.tarjetas.append(
             self.tarjeta_informacion
@@ -1552,7 +1568,6 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         
         for boton in (
             self.boton_resultado,
-            self.boton_historial,
             self.boton_informacion,
         ):
             boton.theme_text_color = "Custom"
@@ -1643,7 +1658,7 @@ class CalculadoraIncapacidadGUI(BoxLayout):
         """Muestra y destaca el resultado de un nuevo cálculo."""
 
         self.resultado.text = (
-            f"Pago Estimado de la Incapacidad:\n"
+            f"Pago Estimado:\n"
             f"{formatear_cop(pago)} COP\n"
             f"{tipo_incapacidad} | {dias} días | "
             f"Caso {id_caso}"
@@ -1653,17 +1668,28 @@ class CalculadoraIncapacidadGUI(BoxLayout):
 
         self.contenido_resultado.opacity = 1
         self.contenido_resultado.disabled = False
-
-        self.contenido_resultado.height = dp(65)
-
-        self.tarjeta_resultado.height = (
-            ALTURA_RESULTADO_EXPANDIDO
-        )
         
         self.tarjeta_resultado.esta_expandida = True
 
         self.boton_resultado.actualizar_texto(
             TEXTO_CONTRAER
+        )
+        
+    def actualizar_altura_resultado(self, instancia, tamano):
+        """Ajusta la tarjeta de resultado según el texto."""
+
+        altura_texto = tamano[1]
+
+        nueva_altura_contenido = altura_texto + dp(15)
+
+        self.contenido_resultado.height = nueva_altura_contenido
+
+        self.tarjeta_resultado.height = (
+            nueva_altura_contenido + dp(60)
+        )
+        self.tarjeta_resultado.height = max(
+            self.tarjeta_resultado.height,
+            ALTURA_RESULTADO_EXPANDIDO
         )
 
     def convertir_numero(
