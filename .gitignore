@@ -111,3 +111,7 @@ Calculadora_Incapacidades_Windows.zip
 
 # Conservar configuración de Buildozer para Android
 !buildozer.spec.venv-android/
+
+venv310/
+__pycache__/
+*.pyc
