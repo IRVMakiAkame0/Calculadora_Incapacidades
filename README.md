@@ -1,64 +1,105 @@
 # Calculadora de Incapacidades
 
-Este proyecto contiene una calculadora para determinar de manera estimada el pago correspondiente a incapacidades laborales en Colombia, contemplando los tipos de incapacidad definidos en la lógica base del proyecto: enfermedad general, maternidad y riesgo laboral.
+Aplicación académica para estimar el pago correspondiente a incapacidades laborales en Colombia.
 
-El proyecto inició con una lógica de negocio previamente desarrollada y suministrada por el docente. En esta etapa se continuó su desarrollo mediante la implementación de una interfaz gráfica, persistencia de datos y otras mejoras orientadas a convertirlo en una aplicación más completa y fácil de utilizar.
+El proyecto inició a partir de una lógica de negocio suministrada por el docente y posteriormente fue ampliado mediante la aplicación de principios de **Clean Code**, el desarrollo de una interfaz gráfica, persistencia de datos y la generación de aplicaciones para **Windows y Android**.
 
----
-
-## Entradas
-
-El cálculo se realiza mediante la función `calcular_pago_incapacidad`, que recibe los siguientes parámetros:
-
-1. **`salario_mensual`** (`int` o `float`): salario mensual del empleado. Debe ser un valor numérico mayor a cero.
-
-2. **`dias_incapacidad`** (`int` o `float`): número de días de incapacidad. Debe ser un valor numérico mayor a cero.
-
-3. **`tipo_incapacidad`** (`str`): determina el porcentaje de reconocimiento económico que se utilizará para realizar el cálculo.
-
-Los tipos contemplados por el proyecto son:
-
-| Llave | Porcentaje | Fundamento legal |
-|---|---:|---|
-| `enfermedad_general` | 66.67% | Decreto 3135 de 1968 / Ley 776 de 2002 |
-| `maternidad` | 100% | Art. 236 CST, modificado por la Ley 2114 de 2021 |
-| `riesgo_laboral` | 100% | Ley 776 de 2002 |
-
-Los tipos y porcentajes utilizados por la aplicación se encuentran definidos en la lógica del modelo.
+La aplicación permite realizar cálculos de incapacidades desde una interfaz gráfica y conservar un historial de los casos realizados.
 
 ---
 
-## Validaciones
+## 📋 Tabla de contenido
 
-El programa realiza validaciones antes de efectuar el cálculo.
-
-Entre las principales validaciones se encuentran:
-
-- Tipo de incapacidad no reconocido.
-- Salario menor o igual a cero.
-- Días de incapacidad menores o iguales a cero.
-- Ingreso de valores no numéricos.
-
-La lógica del proyecto contempla excepciones propias para controlar diferentes entradas inválidas:
-
-- `SalarioInvalido`
-- `DiasIncapacidadInvalidos`
-- `TipoIncapacidadInvalido`
-
-En la interfaz gráfica estos errores son presentados mediante mensajes comprensibles para el usuario, evitando mostrar directamente errores técnicos de Python.
+* [Descripción](#-descripción)
+* [Funcionalidades](#-funcionalidades)
+* [Tipos de incapacidad](#-tipos-de-incapacidad)
+* [Proceso de cálculo](#-proceso-de-cálculo)
+* [Validaciones](#-validaciones)
+* [Arquitectura](#-arquitectura)
+* [Tecnologías utilizadas](#-tecnologías-utilizadas)
+* [Estructura del proyecto](#-estructura-del-proyecto)
+* [Requisitos](#-requisitos)
+* [Instalación](#-instalación)
+* [Ejecución en consola](#-ejecución-en-consola)
+* [Ejecución de la interfaz gráfica](#-ejecución-de-la-interfaz-gráfica)
+* [Aplicación para Windows](#-aplicación-para-windows)
+* [Aplicación para Android](#-aplicación-para-android)
+* [Persistencia de datos](#-persistencia-de-datos)
+* [Pruebas](#-pruebas)
+* [Principios de Clean Code](#-principios-de-clean-code)
+* [Alcance y limitaciones](#-alcance-y-limitaciones)
+* [Integrantes](#-integrantes)
 
 ---
 
-## Proceso de cálculo
+## 📌 Descripción
 
-Una vez validados los datos de entrada, el programa realiza el cálculo correspondiente.
+La **Calculadora de Incapacidades** es una aplicación desarrollada en Python que permite estimar el valor correspondiente a un período de incapacidad laboral.
 
-De manera general, el proceso consiste en:
+El proyecto cuenta con:
 
-1. Consultar el porcentaje correspondiente al tipo de incapacidad.
-2. Calcular el valor diario del salario.
-3. Aplicar el porcentaje correspondiente.
-4. Multiplicar el resultado por los días de incapacidad.
+* Interfaz gráfica desarrollada con Kivy y KivyMD.
+* Interfaz de consola.
+* Persistencia de información mediante SQLite.
+* Historial de cálculos.
+* Validación de datos.
+* Manejo de excepciones.
+* Temas claro, oscuro y automático.
+* Aplicación ejecutable para Windows.
+* Aplicación empaquetada para dispositivos Android.
+* Pruebas automatizadas.
+* Separación entre lógica de negocio, persistencia y presentación.
+
+El objetivo académico del proyecto es aplicar principios de **Clean Code** y buenas prácticas de desarrollo de software en un proyecto funcional.
+
+---
+
+# 🚀 Funcionalidades
+
+La aplicación permite:
+
+* Ingresar el salario mensual del trabajador.
+* Ingresar la cantidad de días de incapacidad.
+* Seleccionar el tipo de incapacidad.
+* Calcular el pago estimado.
+* Mostrar el resultado de manera clara.
+* Validar los datos ingresados.
+* Mostrar mensajes comprensibles cuando ocurre un error.
+* Guardar los cálculos realizados.
+* Consultar el historial de casos.
+* Utilizar la aplicación con tema claro.
+* Utilizar la aplicación con tema oscuro.
+* Utilizar el tema automático según la configuración del sistema.
+* Ejecutar la aplicación desde Python.
+* Ejecutar la aplicación como programa de Windows.
+* Utilizar la aplicación desde un dispositivo Android mediante el APK.
+
+---
+
+# 🏥 Tipos de incapacidad
+
+El proyecto contempla los siguientes tipos:
+
+| Tipo               | Porcentaje utilizado |
+| ------------------ | -------------------: |
+| Enfermedad general |               66.67% |
+| Maternidad         |                 100% |
+| Riesgo laboral     |                 100% |
+
+Los porcentajes y reglas utilizados corresponden a la lógica académica implementada en el proyecto.
+
+> **Nota:** Los resultados son una simulación académica y no sustituyen una liquidación oficial realizada por una entidad competente.
+
+---
+
+# 🧮 Proceso de cálculo
+
+Una vez validados los datos, el programa realiza el cálculo en varias etapas:
+
+1. Identifica el tipo de incapacidad.
+2. Obtiene el porcentaje de reconocimiento correspondiente.
+3. Calcula el valor diario del salario.
+4. Calcula el pago correspondiente a los días de incapacidad.
 
 El valor diario se obtiene mediante:
 
@@ -66,146 +107,248 @@ El valor diario se obtiene mediante:
 valor_dia = salario_mensual / 30
 ```
 
-Posteriormente se calcula el pago:
+Posteriormente:
 
 ```text
-pago = valor_dia * porcentaje * dias_incapacidad
+pago = valor_dia × porcentaje_reconocimiento × dias_incapacidad
 ```
 
----
+### Ejemplo
 
-## Salida
+Para un salario mensual de:
 
-El programa retorna un valor numérico que representa el monto estimado correspondiente al periodo de incapacidad ingresado.
+```text
+$2.500.000
+```
 
-En la interfaz gráfica el resultado se presenta de manera visual junto con información relacionada con el cálculo realizado.
+y una incapacidad de:
 
----
+```text
+5 días
+```
 
-## Alcance y limitaciones
-
-La calculadora constituye una aproximación académica al cálculo de incapacidades y no pretende reemplazar una liquidación oficial realizada por una entidad competente.
-
-Entre sus limitaciones se encuentran:
-
-- No contempla todos los posibles escenarios administrativos de una incapacidad prolongada.
-- El cálculo de enfermedad general utiliza el porcentaje establecido por la lógica del proyecto y no realiza una liquidación completa por diferentes tramos de días.
-- No reproduce todas las reglas administrativas que pueden aplicar según EPS, ARL, empleador u otras entidades.
-- Los resultados deben entenderse como una simulación académica basada en las reglas implementadas en el proyecto.
+el programa utiliza el tipo de incapacidad seleccionado para determinar el porcentaje correspondiente y calcular el valor estimado.
 
 ---
 
-## Arquitectura del proyecto
+# ✅ Validaciones
 
-El proyecto mantiene separada la lógica de negocio de las diferentes interfaces de usuario.
+Antes de realizar el cálculo, el programa verifica que la información ingresada sea válida.
 
-La estructura principal incluye:
+Entre las principales validaciones se encuentran:
+
+* Salario menor o igual a cero.
+* Días de incapacidad menores o iguales a cero.
+* Tipo de incapacidad inexistente.
+* Valores no numéricos.
+* Datos incompletos.
+
+El proyecto utiliza excepciones específicas para representar diferentes errores de entrada.
+
+Esto permite separar la validación de la lógica principal y mostrar mensajes comprensibles al usuario.
+
+---
+
+# 🏗️ Arquitectura
+
+El proyecto utiliza una estructura separada por responsabilidades.
+
+La lógica principal se encuentra en el modelo, mientras que las diferentes interfaces funcionan como capas de presentación.
+
+```text
+                    ┌─────────────────────┐
+                    │      Usuario        │
+                    └──────────┬──────────┘
+                               │
+              ┌────────────────┴────────────────┐
+              │                                 │
+       ┌──────▼──────┐                   ┌──────▼──────┐
+       │   Consola   │                   │     GUI     │
+       │   (View)    │                   │   Kivy/KivyMD│
+       └──────┬──────┘                   └──────┬──────┘
+              │                                 │
+              └────────────────┬────────────────┘
+                               │
+                       ┌───────▼────────┐
+                       │     Modelo     │
+                       │   Incapacidad  │
+                       └───────┬────────┘
+                               │
+                 ┌─────────────┴─────────────┐
+                 │                           │
+          ┌──────▼──────┐             ┌──────▼──────┐
+          │ Validaciones│             │   Cálculo   │
+          └─────────────┘             └─────────────┘
+                               │
+                       ┌───────▼────────┐
+                       │    SQLite      │
+                       │   Persistencia │
+                       └────────────────┘
+```
+
+La separación de responsabilidades permite modificar la interfaz sin tener que duplicar la lógica de cálculo.
+
+---
+
+# 📁 Estructura del proyecto
 
 ```text
 Calculadora_Incapacidades/
+│
+├── .github/
+│   └── workflows/
+│       └── build-windows.yml
+│
+├── doc/
+│
 ├── src/
+│   ├── database/
+│   │   ├── __init__.py
+│   │   └── database.py
+│   │
 │   ├── model/
 │   │   └── incapacidad.py
-│   ├── database/
-│   │   └── database.py
+│   │
 │   └── view/
 │       ├── console/
 │       │   └── main.py
+│       │
 │       └── gui/
 │           └── main.py
+│
 ├── test/
 │   └── test_incapacidad.py
+│
+├── .gitignore
+├── buildozer.spec
+├── main.py
 ├── requirements.txt
 └── README.md
 ```
 
-### Modelo
+### `src/model/`
 
-`src/model/incapacidad.py`
+Contiene la lógica de negocio de la aplicación.
 
-Contiene la lógica de negocio relacionada con las incapacidades, incluyendo las validaciones y el cálculo correspondiente.
+Aquí se encuentran las funciones relacionadas con:
 
-### Base de datos
+* cálculo de incapacidades;
+* validación de datos;
+* tipos de incapacidad;
+* excepciones.
 
-`src/database/database.py`
+### `src/database/`
 
-Gestiona la persistencia de los casos mediante SQLite.
+Contiene la lógica encargada de la persistencia de los datos mediante SQLite.
 
-### Vista de consola
+Permite:
 
-`src/view/console/main.py`
+* crear la base de datos;
+* guardar casos;
+* consultar el historial.
 
-Permite utilizar las funcionalidades principales del programa directamente desde la terminal.
+### `src/view/console/`
 
-### Vista gráfica
+Contiene la interfaz de consola.
 
-`src/view/gui/main.py`
+Permite ejecutar la calculadora desde una terminal.
 
-Contiene la interfaz gráfica de la aplicación desarrollada utilizando Kivy y KivyMD.
+### `src/view/gui/`
 
-Tanto la interfaz gráfica como la interfaz de consola utilizan la lógica del modelo, evitando duplicar las reglas principales del cálculo.
+Contiene la interfaz gráfica desarrollada con Kivy y KivyMD.
+
+Incluye:
+
+* formulario de cálculo;
+* selección del tipo de incapacidad;
+* resultados;
+* historial;
+* temas claro y oscuro;
+* validaciones visuales.
+
+### `test/`
+
+Contiene las pruebas automatizadas de la lógica de negocio.
+
+### `.github/workflows/`
+
+Contiene la configuración de GitHub Actions utilizada para automatizar la generación de la aplicación para Windows.
 
 ---
 
-## Interfaz gráfica
+# 🛠️ Tecnologías utilizadas
 
-La aplicación cuenta con una interfaz gráfica desarrollada utilizando **Kivy** y **KivyMD**.
+| Tecnología         | Uso                                           |
+| ------------------ | --------------------------------------------- |
+| Python             | Lenguaje principal                            |
+| Kivy               | Desarrollo de la interfaz gráfica             |
+| KivyMD             | Componentes y diseño de la interfaz           |
+| SQLite             | Persistencia de datos                         |
+| Pytest             | Pruebas automatizadas                         |
+| PyInstaller        | Generación del ejecutable de Windows          |
+| Buildozer          | Empaquetado de la aplicación Android          |
+| Python-for-Android | Construcción del paquete Android              |
+| Git                | Control de versiones                          |
+| GitHub             | Repositorio y colaboración                    |
+| GitHub Actions     | Automatización de la compilación para Windows |
 
-Entre sus funcionalidades se encuentran:
+---
 
-- Ingreso del salario mensual en pesos colombianos (COP).
-- Ingreso de los días de incapacidad.
-- Selección del tipo de incapacidad mediante botones independientes para enfermedad general, maternidad y riesgo laboral.
-- Identificación visual del tipo de incapacidad seleccionada.
-- Cálculo y presentación del pago estimado correspondiente a la incapacidad.
-- Visualización del tipo de incapacidad, número de días y número de caso asociado al resulado.
-- Limpieza de los campos del formulario.
-- Validación de los datos ingresados y presentación de mensajes comprensibles para el usuario.
-- Historial de los casos calculados.
-- Persistencia de los casos mediantes SQLite.
-- Selección de tema automático, claro u oscuro.
-- Adaptación de los elementos visuales de acuerdo con el tema seleccionado
+# 💻 Requisitos
 
-### Formato del salario
+Para ejecutar el proyecto desde código fuente se necesita:
 
-El campo de salario mensual incorpora separadores de miles mientras el usuario ingresa el valor, facilitando su lectura. Por ejemplo:
+* Python 3.12 recomendado.
+* Git.
+* Las dependencias especificadas en `requirements.txt`.
+
+Las dependencias principales del proyecto son:
 
 ```text
-2500000 -> 2.500.000
+Kivy
+KivyMD
+Pytest
 ```
 
-La interfaz consume la lógica existente del proyecto y funciona como una nueva capa de presentación para facilitar la interacción del usuario.
+La configuración utilizada para Android define además las dependencias necesarias para Buildozer y Python-for-Android.
 
 ---
 
-## Persistencia de datos
+# 📥 Instalación
 
-La aplicación utiliza **SQLite** para almacenar los casos calculados.
+Clonar el repositorio:
 
-Esto permite conservar información de los cálculos y posteriormente visualizar los casos registrados desde la aplicación.
-
-Entre los datos asociados a los casos se encuentran:
-
-- Tipo de incapacidad.
-- Días de incapacidad.
-- Salario utilizado.
-- Pago calculado.
-
-La persistencia permite que el historial no dependa únicamente de la sesión actual de ejecución.
-
----
-
-## Requisitos
-
-Se recomienda utilizar **Python 3.10 o superior**.
-
-Las dependencias necesarias para ejecutar la aplicación se encuentran especificadas en:
-
-```text
-requirements.txt
+```bash
+git clone https://github.com/IRVMakiAkame0/Calculadora_Incapacidades.git
 ```
 
-Para instalarlas, desde la raíz del proyecto ejecutar:
+Entrar al proyecto:
+
+```bash
+cd Calculadora_Incapacidades
+```
+
+Crear un entorno virtual:
+
+### Windows
+
+```bash
+python -m venv .venv
+```
+
+Activar el entorno:
+
+```bash
+.venv\Scripts\activate
+```
+
+Actualizar pip:
+
+```bash
+python -m pip install --upgrade pip
+```
+
+Instalar las dependencias:
 
 ```bash
 python -m pip install -r requirements.txt
@@ -213,74 +356,321 @@ python -m pip install -r requirements.txt
 
 ---
 
-## Ejecutar la interfaz gráfica
+# 🖥️ Ejecución en consola
 
-Desde la carpeta raíz del proyecto ejecutar:
-
-```bash
-python -m src.view.gui.main
-```
-
-Esto iniciará la interfaz gráfica de la calculadora.
-
----
-
-## Ejecutar la interfaz de consola
-
-La versión de consola continúa disponible y utiliza la misma lógica principal del proyecto.
-
-Para ejecutarla:
+Desde la raíz del proyecto:
 
 ```bash
 python -m src.view.console.main
 ```
 
+La versión de consola utiliza la misma lógica de negocio que la aplicación gráfica.
+
+Esto permite comprobar que la lógica está separada de la interfaz.
+
 ---
 
-## Ejecutar las pruebas
+# 🖼️ Ejecución de la interfaz gráfica
 
-El proyecto cuenta con pruebas automatizadas para comprobar el funcionamiento de la lógica implementada.
+Desde la raíz del proyecto:
 
-Desde la raíz del proyecto ejecutar:
+```bash
+python -m src.view.gui.main
+```
+
+La interfaz gráfica permite realizar los cálculos de forma visual y consultar el historial de casos almacenados.
+
+---
+
+# 🪟 Aplicación para Windows
+
+El proyecto incluye una configuración de **GitHub Actions** para generar automáticamente la aplicación de Windows.
+
+El workflow utiliza:
+
+* Windows como sistema de compilación.
+* Python 3.12.
+* PyInstaller.
+* Las dependencias del proyecto.
+* Las pruebas unitarias antes de generar el ejecutable.
+
+El workflow se encuentra en:
+
+```text
+.github/workflows/build-windows.yml
+```
+
+El ejecutable se genera utilizando PyInstaller.
+
+El proceso utiliza:
+
+```bash
+python -m PyInstaller \
+    --noconfirm \
+    --clean \
+    --onedir \
+    --windowed \
+    --name CalculadoraIncapacidades \
+    --paths . \
+    src/view/gui/main.py
+```
+
+El resultado se genera dentro de:
+
+```text
+dist/CalculadoraIncapacidades/
+```
+
+El workflow de GitHub Actions publica esta carpeta como un artefacto denominado:
+
+```text
+CalculadoraIncapacidades-Windows
+```
+
+De esta manera, el programa puede utilizarse en Windows sin necesidad de ejecutar directamente el código fuente de Python.
+
+---
+
+# 📱 Aplicación para Android
+
+El proyecto también fue preparado para generar una aplicación para dispositivos Android utilizando **Buildozer** y **Python-for-Android**.
+
+La configuración se encuentra en:
+
+```text
+buildozer.spec
+```
+
+Actualmente la configuración establece:
+
+```text
+title = Calculadora de Incapacidades
+package.name = calculadoraincapacidades
+package.domain = com.calculadoraincapacidades
+```
+
+La aplicación está configurada para ejecutarse en orientación vertical:
+
+```text
+orientation = portrait
+```
+
+También se definen las arquitecturas Android:
+
+```text
+arm64-v8a
+armeabi-v7a
+```
+
+La configuración de Android utiliza:
+
+```text
+android.api = 33
+android.minapi = 24
+```
+
+## Generar el APK
+
+La generación del APK se realiza mediante Buildozer.
+
+En un entorno compatible con Buildozer, ejecutar:
+
+```bash
+buildozer android debug
+```
+
+El archivo generado se encontrará en:
+
+```text
+bin/
+```
+
+El APK generado puede transferirse posteriormente a un dispositivo Android para realizar las pruebas de funcionamiento.
+
+## Configuración del APK
+
+El proyecto utiliza las siguientes dependencias para la aplicación Android:
+
+```text
+python3
+kivy==2.3.1
+kivymd==2.0.0
+filetype
+materialyoucolor
+asynckivy
+asyncgui
+```
+
+Estas dependencias se encuentran configuradas directamente en `buildozer.spec`.
+
+---
+
+# 💾 Persistencia de datos
+
+La aplicación utiliza **SQLite** para almacenar los casos calculados.
+
+El historial permite conservar información incluso después de cerrar y volver a abrir la aplicación.
+
+Entre los datos almacenados se encuentran:
+
+* Tipo de incapacidad.
+* Días de incapacidad.
+* Salario utilizado.
+* Pago calculado.
+
+La persistencia se encuentra separada de la lógica de negocio y es gestionada por:
+
+```text
+src/database/database.py
+```
+
+Los archivos de base de datos generados localmente no deben formar parte del repositorio.
+
+---
+
+# 🧪 Pruebas
+
+El proyecto cuenta con pruebas automatizadas para comprobar la lógica de cálculo.
+
+Para ejecutar las pruebas:
 
 ```bash
 python -m pytest
 ```
 
-Las pruebas permiten comprobar que las funcionalidades existentes continúan funcionando después de las modificaciones realizadas al proyecto.
+También pueden ejecutarse utilizando `unittest`:
+
+```bash
+python -m unittest discover -s test -v
+```
+
+Las pruebas permiten comprobar que los cambios realizados en la interfaz o en otras partes del proyecto no afecten la lógica principal.
+
+Además, el proceso automatizado de construcción para Windows ejecuta las pruebas antes de generar el ejecutable.
 
 ---
 
-## Integrantes y contribuciones
+# 🧹 Principios de Clean Code
 
-### Desarrollo base del proyecto
+Durante el desarrollo se aplicaron diferentes principios relacionados con Clean Code.
 
-El desarrollo inicial de la lógica de la calculadora de incapacidades fue realizado por:
+### Nombres significativos
 
-- Miguel Ángel Arango Cardona
-- Juan Camilo García Castro
+Se utilizan nombres que permiten comprender la responsabilidad de variables, funciones y clases.
 
-Esta lógica corresponde al proyecto base suministrado por el docente para continuar su desarrollo.
+Ejemplos:
 
-### Desarrollo de interfaz gráfica y aplicación
+```python
+salario_mensual
+dias_incapacidad
+tipo_incapacidad
+porcentaje_reconocimiento
+```
 
-A partir del proyecto base suministrado, esta etapa fue desarrollada por:
+En lugar de nombres ambiguos como:
 
-| Nombre | GitHub |
-|---|---|
+```python
+x
+y
+dato
+valor
+```
+
+### Responsabilidad única
+
+Las diferentes partes del proyecto tienen responsabilidades separadas:
+
+```text
+Modelo       → lógica de negocio
+Base de datos → persistencia
+Vista         → interacción con el usuario
+Pruebas      → verificación del comportamiento
+```
+
+### Separación de responsabilidades
+
+La interfaz gráfica no contiene directamente las reglas principales del cálculo.
+
+La lógica se encuentra centralizada en el modelo para evitar duplicación.
+
+### Manejo de excepciones
+
+Se utilizan excepciones específicas para representar errores relacionados con los datos ingresados.
+
+Esto permite diferenciar los distintos tipos de errores y proporcionar mensajes adecuados al usuario.
+
+### Evitar duplicación
+
+Las interfaces de consola y gráfica utilizan la misma lógica de negocio.
+
+Esto evita implementar dos veces las mismas reglas de cálculo.
+
+### Funciones y métodos enfocados
+
+Las funciones buscan realizar una responsabilidad concreta y evitar mezclar diferentes niveles de lógica.
+
+### Código mantenible
+
+La estructura modular facilita realizar cambios en una parte del proyecto sin afectar innecesariamente las demás.
+
+---
+
+# ⚠️ Alcance y limitaciones
+
+Esta aplicación fue desarrollada con fines académicos.
+
+Los resultados corresponden a una **simulación basada en las reglas implementadas en el proyecto**.
+
+La aplicación no pretende reemplazar una liquidación oficial realizada por una EPS, ARL, empleador u otra entidad competente.
+
+Entre las principales limitaciones se encuentran:
+
+* No se contemplan todos los escenarios administrativos posibles.
+* No se implementan todas las reglas que pueden intervenir en una liquidación real.
+* El cálculo corresponde a la lógica académica definida para el proyecto.
+* Los porcentajes y reglas implementados no deben interpretarse como asesoría legal o laboral.
+* El resultado debe utilizarse como una estimación.
+
+---
+
+# 👥 Integrantes
+
+## Desarrollo base
+
+La lógica inicial del proyecto fue desarrollada por:
+
+* Miguel Ángel Arango Cardona
+* Juan Camilo García Castro
+
+Esta lógica corresponde al proyecto base suministrado por el docente.
+
+## Desarrollo y ampliación
+
+La etapa de ampliación del proyecto fue desarrollada por:
+
+| Integrante              | GitHub                                             |
+| ----------------------- | -------------------------------------------------- |
 | Isabella Ruiz Velasquez | [@IRVMakiAkame0](https://github.com/IRVMakiAkame0) |
-| Andrés Rosas | [@andres-rosas](https://github.com/andres-rosas) |
+| Andrés Rosas            | [@andres-rosas](https://github.com/andres-rosas)   |
 
-Durante esta etapa se implementaron y mejoraron funcionalidades como:
+Durante esta etapa se trabajó en:
 
-- Desarrollo e integración de la interfaz gráfica.
-- Uso de Kivy y KivyMD.
-- Diseño visual de la aplicación.
-- Implementación de temas claro, oscuro y automático.
-- Integración de la lógica existente con la interfaz gráfica.
-- Persistencia de información mediante SQLite.
-- Historial de casos.
-- Validaciones y manejo de errores desde la interfaz.
-- Pruebas y ajustes de funcionamiento de la aplicación.
+* Aplicación de principios de Clean Code.
+* Desarrollo de la interfaz gráfica.
+* Integración de Kivy y KivyMD.
+* Diseño visual.
+* Temas claro, oscuro y automático.
+* Persistencia mediante SQLite.
+* Historial de casos.
+* Validaciones.
+* Manejo de errores.
+* Pruebas.
+* Generación de la aplicación para Windows.
+* Preparación y generación de la aplicación Android.
+* Configuración de procesos de compilación.
 
 ---
+
+# 📄 Licencia
+
+Este proyecto fue desarrollado con fines académicos para la aplicación de principios de Clean Code y buenas prácticas de desarrollo de software.
