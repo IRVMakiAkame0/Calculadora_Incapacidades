@@ -110,4 +110,4 @@ Calculadora_Incapacidades_Windows.zip
 *.spec
 
 # Conservar configuración de Buildozer para Android
-!buildozer.spec
+!buildozer.spec.venv-android/
