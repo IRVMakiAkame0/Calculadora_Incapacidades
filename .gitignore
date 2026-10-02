@@ -10,6 +10,7 @@ __pycache__/
 # _______________________________________
 .venv/
 venv/
+venv*/
 env/
 ENV/
 
@@ -97,6 +98,9 @@ desktop.ini
 # _______________________________________
 .buildozer/
 bin/
+*.apk
+*.aab
+*.apks
 
 # _______________________________________
 # Compilaciones Windows
@@ -110,13 +114,4 @@ Calculadora_Incapacidades_Windows.zip
 *.spec
 
 # Conservar configuración de Buildozer para Android
-!buildozer.spec.venv-android/
-
-venv310/
-__pycache__/
-*.pyc
-
-# APK generado por Buildozer
-*.apk
-*.aab
-*.apks
+!buildozer.spec
